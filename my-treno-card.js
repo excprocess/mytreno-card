@@ -37,6 +37,7 @@ if (!window.MyTrenoTranslations) window.MyTrenoTranslations = {
     theme_neon: "Neon (Cyberpunk)",
     theme_retro: "Display",
     theme_trenitalia: "My Treno",
+    theme_material3: "Material 3",
     train_name: "Nome Treno",
     select_train: "Seleziona il treno",
     theme: "Tema",
@@ -73,6 +74,7 @@ if (!window.MyTrenoTranslations) window.MyTrenoTranslations = {
     theme_neon: "Neon",
     theme_retro: "Display",
     theme_trenitalia: "My Treno",
+    theme_material3: "Material 3",
     train_name: "Train Name",
     select_train: "Select train",
     theme: "Theme",
@@ -178,6 +180,7 @@ class MyTrenoCardEditor extends LitElement {
                   { value: "neon", label: window.myTrenoT('theme_neon', this._getLang()) },
                   { value: "retro", label: window.myTrenoT('theme_retro', this._getLang()) },
                   { value: "trenitalia", label: window.myTrenoT('theme_trenitalia', this._getLang()) },
+                  { value: "material3", label: window.myTrenoT('theme_material3', this._getLang()) },
                 ]              }
             }}
             .value=${this._config.theme || "default"}
@@ -535,6 +538,117 @@ class MyTrenoCard extends HTMLElement {
         }
         .treno-popup.theme-trenitalia .treno-stop .info {
           color: #00EE44;
+        }
+
+        /* ── MATERIAL 3 THEME (Dialog) ── */
+        .treno-popup.theme-material3 {
+          --m3-surface: var(--md-sys-color-surface-container-high, var(--ha-card-background, var(--card-background-color, #ECE6F0)));
+          --m3-on-surface: var(--md-sys-color-on-surface, var(--primary-text-color, #1D1B20));
+          --m3-on-surface-variant: var(--md-sys-color-on-surface-variant, var(--secondary-text-color, #49454F));
+          --m3-primary: var(--md-sys-color-primary, var(--primary-color, #6750A4));
+          --m3-primary-container: var(--md-sys-color-primary-container, color-mix(in srgb, var(--primary-color, #6750A4) 20%, transparent));
+          --m3-outline: var(--md-sys-color-outline, var(--secondary-text-color, #79747E));
+          --m3-outline-variant: var(--md-sys-color-outline-variant, var(--ha-card-border-color, var(--divider-color, #CAC4D0)));
+          --mytreno-text-color: var(--m3-on-surface);
+          --mytreno-info-color: var(--m3-on-surface-variant);
+          background: var(--m3-surface);
+          color: var(--m3-on-surface);
+          font-family: var(--ha-font-family-body, Roboto, 'Google Sans', system-ui, -apple-system, sans-serif);
+          border-radius: 28px;
+          padding: 24px;
+          border: 1px solid var(--m3-outline-variant);
+          box-shadow: 0 4px 8px 3px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.3);
+          backdrop-filter: none;
+        }
+        .treno-popup.theme-material3 h3 {
+          color: var(--m3-on-surface);
+          font-size: 1.5rem;
+          font-weight: 400;
+          line-height: 2rem;
+          margin-bottom: 1rem;
+          padding-right: 2.5rem;
+        }
+        .treno-popup.theme-material3 h4 {
+          color: var(--m3-on-surface-variant);
+          font-size: 0.875rem;
+          font-weight: 500;
+          letter-spacing: 0.01em;
+          margin: 1.25rem 0 0.25rem;
+        }
+        .treno-popup.theme-material3 .close-btn {
+          top: 16px;
+          right: 16px;
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          font-size: 1.35rem;
+          color: var(--m3-on-surface-variant);
+          transition: background-color 0.15s ease;
+        }
+        .treno-popup.theme-material3 .close-btn:hover {
+          transform: none;
+          background: color-mix(in srgb, var(--m3-on-surface) 8%, transparent);
+        }
+        .treno-popup.theme-material3 .treno-popup-content p {
+          font-size: 0.875rem;
+          line-height: 1.4;
+          margin: 0.5rem 0;
+        }
+        .treno-popup.theme-material3 .treno-popup-content strong {
+          color: var(--m3-on-surface-variant);
+          font-weight: 500;
+        }
+        .treno-popup.theme-material3 .treno-timeline-scroll {
+          scrollbar-color: var(--m3-outline-variant) transparent;
+        }
+        .treno-popup.theme-material3 .treno-timeline-scroll::-webkit-scrollbar-thumb {
+          background-color: var(--m3-outline-variant);
+        }
+        .treno-popup.theme-material3 .treno-timeline::before {
+          height: 4px;
+          border-radius: 2px;
+          background: var(--m3-outline-variant);
+          box-shadow: none;
+        }
+        .treno-popup.theme-material3 .treno-stop .label {
+          color: var(--m3-on-surface);
+          font-weight: 500;
+        }
+        .treno-popup.theme-material3 .treno-stop .dot {
+          width: 12px;
+          height: 12px;
+          background: var(--m3-surface);
+          border: 2px solid var(--m3-outline);
+          box-shadow: none;
+        }
+        .treno-popup.theme-material3 .treno-stop:hover .dot {
+          transform: scale(1.15);
+          box-shadow: none;
+        }
+        .treno-popup.theme-material3 .treno-stop.done .dot {
+          background: var(--m3-primary);
+          border-color: var(--m3-primary);
+          opacity: 0.55;
+        }
+        .treno-popup.theme-material3 .treno-stop.next .dot {
+          width: 16px;
+          height: 16px;
+          background: var(--m3-primary);
+          border: 3px solid var(--m3-primary-container);
+          box-shadow: none;
+          animation: none;
+        }
+        .treno-popup.theme-material3 .treno-stop .info {
+          color: var(--m3-on-surface-variant);
+          font-variant-numeric: tabular-nums;
+        }
+        .treno-popup.theme-material3 .treno-stop .info span:first-child {
+          color: var(--m3-on-surface);
+          font-weight: 500;
+        }
+        .treno-popup.theme-material3 .treno-stop .info span:last-child {
+          font-style: normal;
+          opacity: 0.85;
         }
     `;
     popup.appendChild(styleTag);
@@ -1079,6 +1193,163 @@ class MyTrenoCard extends HTMLElement {
           }
           .theme-trenitalia .treno-table-scroll::-webkit-scrollbar-thumb {
             background: rgba(0,238,68,0.3);
+          }
+
+          /* ── MATERIAL 3 THEME ── */
+          .theme-material3 {
+            --m3-surface: var(--md-sys-color-surface-container-low, var(--ha-card-background, var(--card-background-color, #F7F2FA)));
+            --m3-surface-highest: var(--md-sys-color-surface-container-highest, color-mix(in srgb, var(--primary-text-color, #1D1B20) 8%, transparent));
+            --m3-on-surface: var(--md-sys-color-on-surface, var(--primary-text-color, #1D1B20));
+            --m3-on-surface-variant: var(--md-sys-color-on-surface-variant, var(--secondary-text-color, #49454F));
+            --m3-primary: var(--md-sys-color-primary, var(--primary-color, #6750A4));
+            --m3-secondary-container: var(--md-sys-color-secondary-container, color-mix(in srgb, var(--primary-color, #6750A4) 14%, transparent));
+            --m3-on-secondary-container: var(--md-sys-color-on-secondary-container, var(--primary-color, #6750A4));
+            --m3-tertiary-container: var(--md-sys-color-tertiary-container, color-mix(in srgb, var(--warning-color, #E65100) 16%, transparent));
+            --m3-on-tertiary-container: var(--md-sys-color-on-tertiary-container, var(--warning-color, #B26A00));
+            --m3-outline-variant: var(--md-sys-color-outline-variant, var(--ha-card-border-color, var(--divider-color, #CAC4D0)));
+            --m3-error-container: var(--md-sys-color-error-container, color-mix(in srgb, var(--error-color, #B3261E) 14%, transparent));
+            --m3-on-error-container: var(--md-sys-color-on-error-container, var(--error-color, #B3261E));
+          }
+          .theme-material3 ha-card {
+            background: var(--m3-surface);
+            color: var(--m3-on-surface);
+            font-family: var(--ha-font-family-body, Roboto, 'Google Sans', system-ui, -apple-system, sans-serif);
+            border-radius: var(--ha-card-border-radius, 12px);
+            border: var(--ha-card-border-width, 1px) solid var(--m3-outline-variant);
+            box-shadow: var(--ha-card-box-shadow, 0 1px 2px rgba(0, 0, 0, 0.12), 0 1px 3px 1px rgba(0, 0, 0, 0.08));
+            padding: 16px;
+            backdrop-filter: none;
+          }
+          .theme-material3 .treno-title {
+            font-size: 1.375rem;
+            font-weight: 400;
+            line-height: 1.75rem;
+            letter-spacing: 0;
+            color: var(--m3-on-surface);
+            margin-bottom: 12px;
+            padding-right: 48px;
+          }
+          .theme-material3 .treno-title::before {
+            display: none;
+          }
+          .theme-material3 .treno-nav-button {
+            top: 12px;
+            right: 12px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--m3-secondary-container);
+            color: var(--m3-on-secondary-container);
+            box-shadow: none;
+            font-size: 1.125rem;
+            transition: background-color 0.15s ease;
+          }
+          .theme-material3 .treno-nav-button:hover {
+            background: color-mix(in srgb, var(--m3-on-secondary-container) 10%, var(--m3-secondary-container));
+          }
+          .theme-material3 table {
+            margin-top: 4px;
+          }
+          .theme-material3 th {
+            color: var(--m3-on-surface-variant);
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            line-height: 1rem;
+            padding: 8px 6px;
+            border-bottom: 1px solid var(--m3-outline-variant);
+          }
+          .theme-material3 td {
+            color: var(--m3-on-surface);
+            font-size: 0.875rem;
+            font-weight: 400;
+            line-height: 1.25rem;
+            padding: 10px 6px;
+            border-bottom: 1px solid color-mix(in srgb, var(--m3-outline-variant) 60%, transparent);
+            font-variant-numeric: tabular-nums;
+          }
+          .theme-material3 tbody tr {
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+          }
+          .theme-material3 tbody tr:hover {
+            background: color-mix(in srgb, var(--m3-on-surface) 8%, transparent);
+          }
+          .theme-material3 tbody tr:last-child td {
+            border-bottom: none;
+          }
+          .theme-material3 .treno-scrollable-text span,
+          .theme-material3 .treno-ritardo-box span {
+            color: var(--m3-on-surface);
+          }
+          .theme-material3 .treno-scrollable-text span {
+            font-weight: 500;
+          }
+          .theme-material3 .treno-platform-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 26px;
+            height: 24px;
+            padding: 0 8px;
+            border-radius: 6px;
+            background: var(--m3-surface-highest);
+            color: var(--m3-on-surface);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+          }
+          .theme-material3 .treno-platform-badge.treno-platform-changed {
+            background: var(--m3-tertiary-container);
+            color: var(--m3-on-tertiary-container);
+          }
+          .theme-material3 .treno-platform-arrow {
+            color: var(--m3-on-surface-variant);
+            font-size: 0.8125rem;
+            align-self: center;
+          }
+          .theme-material3 .treno-platform-info {
+            margin-top: 4px;
+            align-items: center;
+          }
+          .theme-material3 .treno-mobile-view .treno-platform-badge {
+            margin-top: 4px;
+          }
+          .theme-material3 .treno-mobile-view .treno-platform-info .treno-platform-badge {
+            margin-top: 0;
+          }
+          .theme-material3 .status-chip {
+            border-radius: 8px;
+            padding: 3px 8px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            line-height: 1.125rem;
+            letter-spacing: 0.01em;
+            animation: none;
+            box-shadow: none;
+          }
+          .theme-material3 .status-chip.on-time {
+            background: color-mix(in srgb, var(--success-color, #2E7D32) 14%, transparent);
+            color: var(--success-color, #2E7D32);
+            border: 1px solid color-mix(in srgb, var(--success-color, #2E7D32) 28%, transparent);
+          }
+          .theme-material3 .status-chip.delayed {
+            background: color-mix(in srgb, var(--warning-color, #B26A00) 15%, transparent);
+            color: var(--warning-color, #B26A00);
+            border: 1px solid color-mix(in srgb, var(--warning-color, #B26A00) 30%, transparent);
+            animation: none;
+          }
+          .theme-material3 .status-chip.late {
+            background: var(--m3-error-container);
+            color: var(--m3-on-error-container);
+            border: 1px solid color-mix(in srgb, var(--error-color, #B3261E) 30%, transparent);
+            animation: none;
+          }
+          .theme-material3 .treno-table-scroll {
+            scrollbar-color: var(--m3-outline-variant) transparent;
+          }
+          .theme-material3 .treno-table-scroll::-webkit-scrollbar-thumb {
+            background: var(--m3-outline-variant);
           }
 
           ha-card {
@@ -1645,7 +1916,8 @@ class MyTrenoCardTrackingEditor extends LitElement {
                   { value: "light", label: window.myTrenoT('theme_light', this._getLang()) },
                   { value: "neon", label: window.myTrenoT('theme_neon', this._getLang()) },
                   { value: "retro", label: window.myTrenoT('theme_retro', this._getLang()) },
-                  { value: "trenitalia", label: window.myTrenoT('theme_trenitalia', this._getLang()) }
+                  { value: "trenitalia", label: window.myTrenoT('theme_trenitalia', this._getLang()) },
+                  { value: "material3", label: window.myTrenoT('theme_material3', this._getLang()) }
                 ]
               }
             }}
@@ -2033,6 +2305,126 @@ class MyTrenoTrackingCard extends HTMLElement {
         padding-top: 20px;
       	font-weight: bold;
       	color: var(--mytreno-title-color, #ffffff);
+      }
+
+      /* ── MATERIAL 3 THEME (Tracking Card) ── */
+      .tracking-treno-popup.theme-material3 {
+        --m3-surface: var(--md-sys-color-surface-container-low, var(--ha-card-background, var(--card-background-color, #F7F2FA)));
+        --m3-on-surface: var(--md-sys-color-on-surface, var(--primary-text-color, #1D1B20));
+        --m3-on-surface-variant: var(--md-sys-color-on-surface-variant, var(--secondary-text-color, #49454F));
+        --m3-primary: var(--md-sys-color-primary, var(--primary-color, #6750A4));
+        --m3-primary-container: var(--md-sys-color-primary-container, color-mix(in srgb, var(--primary-color, #6750A4) 20%, transparent));
+        --m3-secondary-container: var(--md-sys-color-secondary-container, color-mix(in srgb, var(--primary-color, #6750A4) 14%, transparent));
+        --m3-on-secondary-container: var(--md-sys-color-on-secondary-container, var(--primary-color, #6750A4));
+        --m3-outline: var(--md-sys-color-outline, var(--secondary-text-color, #79747E));
+        --m3-outline-variant: var(--md-sys-color-outline-variant, var(--ha-card-border-color, var(--divider-color, #CAC4D0)));
+        --mytreno-text-color: var(--m3-on-surface);
+        --mytreno-info-color: var(--m3-on-surface-variant);
+        --mytreno-title-color: var(--m3-on-surface);
+        background: var(--m3-surface);
+        color: var(--m3-on-surface);
+        font-family: var(--ha-font-family-body, Roboto, 'Google Sans', system-ui, -apple-system, sans-serif);
+        border-radius: var(--ha-card-border-radius, 12px);
+        border: var(--ha-card-border-width, 1px) solid var(--m3-outline-variant);
+        box-shadow: var(--ha-card-box-shadow, 0 1px 2px rgba(0, 0, 0, 0.12), 0 1px 3px 1px rgba(0, 0, 0, 0.08));
+        padding: 16px 0 8px;
+        backdrop-filter: none;
+      }
+      .tracking-treno-popup.theme-material3 .treno-custom-title {
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--m3-on-surface-variant);
+        padding: 0 20px;
+        margin: 0 0 2px;
+      }
+      .tracking-treno-popup.theme-material3 .tracking-treno-popup-content h3 {
+        color: var(--m3-on-surface);
+        font-size: 1.375rem;
+        font-weight: 400;
+        line-height: 1.75rem;
+        margin: 0 20px 10px;
+      }
+      .tracking-treno-popup.theme-material3 .tracking-treno-popup-content p {
+        font-size: 0.875rem;
+        line-height: 1.4;
+        margin: 4px 0;
+        padding: 0 20px;
+        color: var(--m3-on-surface);
+      }
+      .tracking-treno-popup.theme-material3 .tracking-treno-popup-content strong {
+        color: var(--m3-on-surface-variant);
+        font-weight: 500;
+      }
+      .tracking-treno-popup.theme-material3 .tracking-percorso-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin: 12px 20px 8px;
+        padding: 6px 14px;
+        border-radius: 9999px;
+        background: var(--m3-secondary-container);
+        color: var(--m3-on-secondary-container);
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: background-color 0.15s ease;
+      }
+      .tracking-treno-popup.theme-material3 .tracking-percorso-toggle:hover {
+        background: color-mix(in srgb, var(--m3-on-secondary-container) 10%, var(--m3-secondary-container));
+      }
+      .tracking-treno-popup.theme-material3 .tracking-treno-timeline-scroll {
+        scrollbar-color: var(--m3-outline-variant) transparent;
+      }
+      .tracking-treno-popup.theme-material3 .tracking-treno-timeline-scroll::-webkit-scrollbar-thumb {
+        background-color: var(--m3-outline-variant);
+      }
+      .tracking-treno-popup.theme-material3 .tracking-treno-timeline::before {
+        height: 4px;
+        border-radius: 2px;
+        background: var(--m3-outline-variant);
+        box-shadow: none;
+      }
+      .tracking-treno-popup.theme-material3 .tracking-treno-stop .label {
+        color: var(--m3-on-surface);
+        font-weight: 500;
+      }
+      .tracking-treno-popup.theme-material3 .tracking-treno-stop .dot {
+        width: 12px;
+        height: 12px;
+        background: var(--m3-surface);
+        border: 2px solid var(--m3-outline);
+        box-shadow: none;
+      }
+      .tracking-treno-popup.theme-material3 .tracking-treno-stop:hover .dot {
+        transform: scale(1.15);
+        box-shadow: none;
+      }
+      .tracking-treno-popup.theme-material3 .tracking-treno-stop.done .dot {
+        background: var(--m3-primary);
+        border-color: var(--m3-primary);
+        opacity: 0.55;
+      }
+      .tracking-treno-popup.theme-material3 .tracking-treno-stop.next .dot {
+        width: 16px;
+        height: 16px;
+        background: var(--m3-primary);
+        border: 3px solid var(--m3-primary-container);
+        box-shadow: none;
+        animation: none;
+      }
+      .tracking-treno-popup.theme-material3 .tracking-treno-stop .info {
+        color: var(--m3-on-surface-variant);
+        font-variant-numeric: tabular-nums;
+      }
+      .tracking-treno-popup.theme-material3 .tracking-treno-stop .info span:first-child {
+        color: var(--m3-on-surface);
+        font-weight: 500;
+      }
+      .tracking-treno-popup.theme-material3 .tracking-treno-stop .info span:last-child {
+        font-style: normal;
+        opacity: 0.85;
       }
     `;
   }

@@ -38,7 +38,7 @@ Tutto il merito del progetto originale va a [@lotablet](https://github.com/lotab
 type: custom:my-treno-card
 sensor: sensor.mytreno_la_spezia_centrale
 extra_sensor: sensor.mytreno_selected_train #OBBLIGATORIO PER IL TRACKING
-theme: default   # default - neon - light - retro - trenitalia
+theme: default   # default - neon - light - retro - trenitalia - material3
 ```
 Puoi anche usare card mod per "aggiustare" le dimensioni della card
 
