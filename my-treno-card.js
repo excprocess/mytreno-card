@@ -7,11 +7,29 @@ loadHaComponents([
   "ha-entity-picker",
 ]).catch(() => {});
 
+const loadMaterialWeb = () => {
+  if (window.__myTrenoM3Loaded) return;
+  window.__myTrenoM3Loaded = true;
+  const components = [
+    ["md-ripple", "https://esm.run/@material/web/ripple/ripple.js"],
+    ["md-icon-button", "https://esm.run/@material/web/iconbutton/icon-button.js"],
+    ["md-filled-tonal-icon-button", "https://esm.run/@material/web/iconbutton/filled-tonal-icon-button.js"],
+    ["md-filled-tonal-button", "https://esm.run/@material/web/button/filled-tonal-button.js"],
+  ];
+  components.forEach(([tag, url]) => {
+    if (!customElements.get(tag)) {
+      import(url).catch(() => {});
+    }
+  });
+};
+
 // 1. OGGETTO GLOBALE TRADUZIONI E FUNZIONE GLOBALE
 if (!window.MyTrenoTranslations) window.MyTrenoTranslations = {
   it: {
     departures: "Partenze da",
     arrivals: "Arrivi a",
+    departures_tab: "Partenze",
+    arrivals_tab: "Arrivi",
     destination: "Destinazione",
     provenance: "Provenienza",
     delay: "Ritardo",
@@ -49,6 +67,8 @@ if (!window.MyTrenoTranslations) window.MyTrenoTranslations = {
   en: {
     departures: "Departures from",
     arrivals: "Arrivals at",
+    departures_tab: "Departures",
+    arrivals_tab: "Arrivals",
     destination: "Destination",
     provenance: "From",
     delay: "Delay",
@@ -274,12 +294,17 @@ class MyTrenoCard extends HTMLElement {
 
     // Crea subito il popup con lo stato di caricamento (unico popup)
     this._popupOpen = true;
+    const isM3 = this._theme === "material3";
+    if (isM3) loadMaterialWeb();
     const overlay = document.createElement("div");
     overlay.className = "treno-popup-overlay";
     const popup = document.createElement("div");
     popup.className = `treno-popup theme-${this._theme}`;
     popup.innerHTML = `
-      <button class="close-btn">&times;</button>
+      ${isM3
+        ? `<md-icon-button class="close-btn m3-close-btn" aria-label="Close"><ha-icon icon="mdi:close"></ha-icon></md-icon-button>`
+        : `<button class="close-btn">&times;</button>`
+      }
       <div id="treno-detail-body" class="treno-popup-content">
         <div style="text-align:center;padding:2rem 0 0.5rem;opacity:.7;">${window.myTrenoT('loading', this._getLang())}</div>
         <div id="treno-loading-hint" class="treno-loading-hint"></div>
@@ -543,60 +568,126 @@ class MyTrenoCard extends HTMLElement {
         /* ── MATERIAL 3 THEME (Dialog) ── */
         .treno-popup.theme-material3 {
           --m3-surface: var(--md-sys-color-surface-container-high, var(--ha-card-background, var(--card-background-color, #ECE6F0)));
+          --m3-surface-container: var(--md-sys-color-surface-container, color-mix(in srgb, var(--primary-text-color, #1D1B20) 5%, transparent));
           --m3-on-surface: var(--md-sys-color-on-surface, var(--primary-text-color, #1D1B20));
           --m3-on-surface-variant: var(--md-sys-color-on-surface-variant, var(--secondary-text-color, #49454F));
           --m3-primary: var(--md-sys-color-primary, var(--primary-color, #6750A4));
-          --m3-primary-container: var(--md-sys-color-primary-container, color-mix(in srgb, var(--primary-color, #6750A4) 20%, transparent));
+          --m3-primary-container: var(--md-sys-color-primary-container, color-mix(in srgb, var(--primary-color, #6750A4) 18%, transparent));
+          --m3-on-primary-container: var(--md-sys-color-on-primary-container, var(--primary-color, #21005D));
           --m3-outline: var(--md-sys-color-outline, var(--secondary-text-color, #79747E));
           --m3-outline-variant: var(--md-sys-color-outline-variant, var(--ha-card-border-color, var(--divider-color, #CAC4D0)));
+          --m3-error: var(--md-sys-color-error, var(--error-color, #B3261E));
+          --m3-error-container: var(--md-sys-color-error-container, color-mix(in srgb, var(--error-color, #B3261E) 14%, transparent));
+          --m3-on-error-container: var(--md-sys-color-on-error-container, var(--error-color, #B3261E));
+          --m3-success: var(--success-color, #2E7D32);
+          --m3-success-container: color-mix(in srgb, var(--success-color, #2E7D32) 14%, transparent);
           --mytreno-text-color: var(--m3-on-surface);
           --mytreno-info-color: var(--m3-on-surface-variant);
+          --md-icon-button-icon-color: var(--m3-on-surface-variant);
+          --md-icon-button-hover-icon-color: var(--m3-on-surface);
+          --md-icon-button-hover-state-layer-color: var(--m3-on-surface);
+          --md-icon-button-pressed-state-layer-color: var(--m3-on-surface);
           background: var(--m3-surface);
           color: var(--m3-on-surface);
           font-family: var(--ha-font-family-body, Roboto, 'Google Sans', system-ui, -apple-system, sans-serif);
-          border-radius: 28px;
+          border-radius: 32px;
           padding: 24px;
+          max-width: 440px;
           border: 1px solid var(--m3-outline-variant);
-          box-shadow: 0 4px 8px 3px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.3);
+          box-shadow: 0 4px 8px 3px rgba(0, 0, 0, 0.14), 0 1px 3px rgba(0, 0, 0, 0.28);
           backdrop-filter: none;
         }
-        .treno-popup.theme-material3 h3 {
-          color: var(--m3-on-surface);
-          font-size: 1.5rem;
-          font-weight: 400;
-          line-height: 2rem;
-          margin-bottom: 1rem;
-          padding-right: 2.5rem;
-        }
-        .treno-popup.theme-material3 h4 {
-          color: var(--m3-on-surface-variant);
-          font-size: 0.875rem;
-          font-weight: 500;
-          letter-spacing: 0.01em;
-          margin: 1.25rem 0 0.25rem;
-        }
-        .treno-popup.theme-material3 .close-btn {
+        .treno-popup.theme-material3 .m3-close-btn {
+          position: absolute;
           top: 16px;
           right: 16px;
-          width: 36px;
-          height: 36px;
+          width: 40px;
+          height: 40px;
           border-radius: 50%;
-          font-size: 1.35rem;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
           color: var(--m3-on-surface-variant);
+          cursor: pointer;
+          border: none;
+          background: transparent;
+          padding: 0;
+          --mdc-icon-size: 20px;
           transition: background-color 0.15s ease;
         }
-        .treno-popup.theme-material3 .close-btn:hover {
+        .treno-popup.theme-material3 .m3-close-btn:hover {
           transform: none;
           background: color-mix(in srgb, var(--m3-on-surface) 8%, transparent);
         }
-        .treno-popup.theme-material3 .treno-popup-content p {
-          font-size: 0.875rem;
-          line-height: 1.4;
-          margin: 0.5rem 0;
+        .treno-popup.theme-material3 .m3-dialog-header {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 16px;
+          padding-right: 40px;
         }
-        .treno-popup.theme-material3 .treno-popup-content strong {
-          color: var(--m3-on-surface-variant);
+        .treno-popup.theme-material3 .m3-dialog-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: var(--m3-primary-container);
+          color: var(--m3-on-primary-container);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          --mdc-icon-size: 20px;
+        }
+        .treno-popup.theme-material3 h3 {
+          color: var(--m3-on-surface);
+          font-size: 1.375rem;
           font-weight: 500;
+          line-height: 1.75rem;
+          margin: 0;
+        }
+        .treno-popup.theme-material3 .m3-dialog-metrics {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+          margin-bottom: 18px;
+        }
+        .treno-popup.theme-material3 .m3-metric-tile {
+          background: var(--m3-surface-container);
+          border-radius: 16px;
+          padding: 10px 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .treno-popup.theme-material3 .m3-metric-tile.is-late {
+          background: var(--m3-error-container);
+          color: var(--m3-on-error-container);
+        }
+        .treno-popup.theme-material3 .m3-metric-tile.is-ontime {
+          background: var(--m3-success-container);
+          color: var(--m3-success);
+        }
+        .treno-popup.theme-material3 .m3-metric-label {
+          font-size: 0.75rem;
+          font-weight: 500;
+          letter-spacing: 0.02em;
+          opacity: 0.8;
+        }
+        .treno-popup.theme-material3 .m3-metric-value {
+          font-size: 0.9375rem;
+          font-weight: 500;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          font-variant-numeric: tabular-nums;
+        }
+        .treno-popup.theme-material3 h4 {
+          color: var(--m3-on-surface-variant);
+          font-size: 0.75rem;
+          font-weight: 500;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          margin: 0 0 4px;
         }
         .treno-popup.theme-material3 .treno-timeline-scroll {
           scrollbar-color: var(--m3-outline-variant) transparent;
@@ -732,13 +823,44 @@ class MyTrenoCard extends HTMLElement {
       </div>
     `;
 
-    body.innerHTML = `
+    if (isM3) {
+      const delayNum = parseInt(attrs.ritardo, 10);
+      const hasDelayNum = !Number.isNaN(delayNum);
+      const delayTileClass = hasDelayNum ? (delayNum > 0 ? "is-late" : "is-ontime") : "";
+      const delayLabel = hasDelayNum
+        ? (delayNum > 0
+          ? window.myTrenoT('late', this._getLang(), { delay: delayNum })
+          : delayNum < 0
+            ? window.myTrenoT('early', this._getLang(), { delay: delayNum })
+            : window.myTrenoT('on_time', this._getLang()))
+        : (attrs.ritardo ?? "-");
+      body.innerHTML = `
+        <div class="m3-dialog-header">
+          <div class="m3-dialog-icon"><ha-icon icon="mdi:train"></ha-icon></div>
+          <h3>${window.myTrenoT('train', this._getLang())} ${attrs.train_number}</h3>
+        </div>
+        <div class="m3-dialog-metrics">
+          <div class="m3-metric-tile ${delayTileClass}">
+            <span class="m3-metric-label">${window.myTrenoT('delay', this._getLang())}</span>
+            <span class="m3-metric-value">${delayLabel}</span>
+          </div>
+          <div class="m3-metric-tile">
+            <span class="m3-metric-label">${window.myTrenoT('next', this._getLang())}</span>
+            <span class="m3-metric-value" title="${attrs.prossima_stazione ?? "-"}">${attrs.prossima_stazione ?? "-"}</span>
+          </div>
+        </div>
+        <h4>${window.myTrenoT('route', this._getLang())}</h4>
+        <div class="fermate">${fermateHTML}</div>
+      `;
+    } else {
+      body.innerHTML = `
         <h3>${window.myTrenoT('train', this._getLang())} ${attrs.train_number}</h3>
         <p><strong>${window.myTrenoT('delay', this._getLang())}:</strong> ${attrs.ritardo ?? "-"}</p>
         <p><strong>${window.myTrenoT('next', this._getLang())}:</strong> ${attrs.prossima_stazione ?? "-"}</p>
         <h4>${window.myTrenoT('route', this._getLang())}</h4>
         <div class="fermate">${fermateHTML}</div>
-    `;
+      `;
+    }
     const scrollContainer = popup.querySelector(".treno-timeline-scroll");
     const nextStop = popup.querySelector(".treno-stop.next");
     if (scrollContainer && nextStop) {
@@ -794,6 +916,9 @@ class MyTrenoCard extends HTMLElement {
     this._sensor = config.sensor;
     this._extra  = config.extra_sensor;
     this._theme  = config.theme || "default";
+    if (this._theme === "material3") {
+      loadMaterialWeb();
+    }
     this._hasStop = newHasStop;
     this._favoriteTrains = this._parseTrainList(config.favoriteTrains);
 
@@ -1198,158 +1323,277 @@ class MyTrenoCard extends HTMLElement {
           /* ── MATERIAL 3 THEME ── */
           .theme-material3 {
             --m3-surface: var(--md-sys-color-surface-container-low, var(--ha-card-background, var(--card-background-color, #F7F2FA)));
+            --m3-surface-container: var(--md-sys-color-surface-container, color-mix(in srgb, var(--primary-text-color, #1D1B20) 5%, transparent));
             --m3-surface-highest: var(--md-sys-color-surface-container-highest, color-mix(in srgb, var(--primary-text-color, #1D1B20) 8%, transparent));
             --m3-on-surface: var(--md-sys-color-on-surface, var(--primary-text-color, #1D1B20));
             --m3-on-surface-variant: var(--md-sys-color-on-surface-variant, var(--secondary-text-color, #49454F));
             --m3-primary: var(--md-sys-color-primary, var(--primary-color, #6750A4));
-            --m3-secondary-container: var(--md-sys-color-secondary-container, color-mix(in srgb, var(--primary-color, #6750A4) 14%, transparent));
-            --m3-on-secondary-container: var(--md-sys-color-on-secondary-container, var(--primary-color, #6750A4));
-            --m3-tertiary-container: var(--md-sys-color-tertiary-container, color-mix(in srgb, var(--warning-color, #E65100) 16%, transparent));
+            --m3-primary-container: var(--md-sys-color-primary-container, color-mix(in srgb, var(--primary-color, #6750A4) 16%, transparent));
+            --m3-on-primary-container: var(--md-sys-color-on-primary-container, var(--primary-color, #21005D));
+            --m3-secondary-container: var(--md-sys-color-secondary-container, color-mix(in srgb, var(--primary-color, #6750A4) 15%, transparent));
+            --m3-on-secondary-container: var(--md-sys-color-on-secondary-container, var(--primary-color, #1D192B));
+            --m3-tertiary-container: var(--md-sys-color-tertiary-container, color-mix(in srgb, var(--warning-color, #E65100) 18%, transparent));
             --m3-on-tertiary-container: var(--md-sys-color-on-tertiary-container, var(--warning-color, #B26A00));
+            --m3-outline: var(--md-sys-color-outline, var(--secondary-text-color, #79747E));
             --m3-outline-variant: var(--md-sys-color-outline-variant, var(--ha-card-border-color, var(--divider-color, #CAC4D0)));
-            --m3-error-container: var(--md-sys-color-error-container, color-mix(in srgb, var(--error-color, #B3261E) 14%, transparent));
+            --m3-error: var(--md-sys-color-error, var(--error-color, #B3261E));
+            --m3-error-container: var(--md-sys-color-error-container, color-mix(in srgb, var(--error-color, #B3261E) 15%, transparent));
             --m3-on-error-container: var(--md-sys-color-on-error-container, var(--error-color, #B3261E));
+            --m3-success: var(--success-color, #2E7D32);
+            --m3-success-container: color-mix(in srgb, var(--success-color, #2E7D32) 15%, transparent);
+            --md-ripple-hover-color: var(--m3-on-surface);
+            --md-ripple-pressed-color: var(--m3-on-surface);
+            --md-ripple-hover-opacity: 0.08;
+            --md-ripple-pressed-opacity: 0.12;
           }
           .theme-material3 ha-card {
             background: var(--m3-surface);
             color: var(--m3-on-surface);
             font-family: var(--ha-font-family-body, Roboto, 'Google Sans', system-ui, -apple-system, sans-serif);
-            border-radius: var(--ha-card-border-radius, 12px);
+            border-radius: var(--ha-card-border-radius, 16px);
             border: var(--ha-card-border-width, 1px) solid var(--m3-outline-variant);
             box-shadow: var(--ha-card-box-shadow, 0 1px 2px rgba(0, 0, 0, 0.12), 0 1px 3px 1px rgba(0, 0, 0, 0.08));
-            padding: 16px;
+            padding: 16px 0 8px;
             backdrop-filter: none;
           }
-          .theme-material3 .treno-title {
+          .theme-material3 .m3-header {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 0 16px 12px;
+          }
+          .theme-material3 .m3-header-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+          }
+          .theme-material3 .m3-station-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--m3-primary-container);
+            color: var(--m3-on-primary-container);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            --mdc-icon-size: 20px;
+          }
+          .theme-material3 .m3-station-title {
             font-size: 1.375rem;
             font-weight: 400;
             line-height: 1.75rem;
             letter-spacing: 0;
             color: var(--m3-on-surface);
-            margin-bottom: 12px;
-            padding-right: 48px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
-          .theme-material3 .treno-title::before {
-            display: none;
-          }
-          .theme-material3 .treno-nav-button {
-            top: 12px;
-            right: 12px;
-            width: 40px;
+          .theme-material3 .m3-segmented {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             height: 40px;
-            border-radius: 50%;
+            border-radius: 20px;
+            border: 1px solid var(--m3-outline);
+            overflow: hidden;
+            background: transparent;
+          }
+          .theme-material3 .m3-segment {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border: none;
+            background: transparent;
+            color: var(--m3-on-surface);
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            cursor: pointer;
+            padding: 0 12px;
+            transition: background-color 0.15s ease, color 0.15s ease;
+            --mdc-icon-size: 18px;
+          }
+          .theme-material3 .m3-segment + .m3-segment {
+            border-left: 1px solid var(--m3-outline);
+          }
+          .theme-material3 .m3-segment:hover {
+            background: color-mix(in srgb, var(--m3-on-surface) 8%, transparent);
+          }
+          .theme-material3 .m3-segment.active {
             background: var(--m3-secondary-container);
             color: var(--m3-on-secondary-container);
-            box-shadow: none;
-            font-size: 1.125rem;
-            transition: background-color 0.15s ease;
           }
-          .theme-material3 .treno-nav-button:hover {
-            background: color-mix(in srgb, var(--m3-on-secondary-container) 10%, var(--m3-secondary-container));
+          .theme-material3 .m3-segment.active:hover {
+            background: color-mix(in srgb, var(--m3-on-secondary-container) 8%, var(--m3-secondary-container));
           }
-          .theme-material3 table {
-            margin-top: 4px;
+          .theme-material3 .m3-segment .m3-check {
+            display: none;
           }
-          .theme-material3 th {
+          .theme-material3 .m3-segment.active .m3-check {
+            display: inline-flex;
+          }
+          .theme-material3 .m3-list-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 16px 8px;
+            border-bottom: 1px solid var(--m3-outline-variant);
             color: var(--m3-on-surface-variant);
             font-size: 0.75rem;
             font-weight: 500;
             letter-spacing: 0.03em;
             line-height: 1rem;
-            padding: 8px 6px;
-            border-bottom: 1px solid var(--m3-outline-variant);
           }
-          .theme-material3 td {
-            color: var(--m3-on-surface);
-            font-size: 0.875rem;
-            font-weight: 400;
-            line-height: 1.25rem;
-            padding: 10px 6px;
-            border-bottom: 1px solid color-mix(in srgb, var(--m3-outline-variant) 60%, transparent);
-            font-variant-numeric: tabular-nums;
+          .theme-material3 .m3-col-dest {
+            flex: 1 1 auto;
+            min-width: 0;
           }
-          .theme-material3 tbody tr {
+          .theme-material3 .m3-col-time {
+            flex: 0 0 auto;
+            min-width: 78px;
+            text-align: right;
+          }
+          .theme-material3 .m3-col-platform {
+            flex: 0 0 48px;
+            text-align: center;
+          }
+          .theme-material3 .m3-list {
+            display: flex;
+            flex-direction: column;
+          }
+          .theme-material3 .m3-list-item {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 56px;
+            padding: 8px 16px;
+            box-sizing: border-box;
             cursor: pointer;
+            overflow: hidden;
             transition: background-color 0.15s ease;
           }
-          .theme-material3 tbody tr:hover {
+          .theme-material3 .m3-list-item + .m3-list-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 16px;
+            right: 16px;
+            height: 1px;
+            background: color-mix(in srgb, var(--m3-outline-variant) 65%, transparent);
+          }
+          .theme-material3 .m3-list-item:hover {
             background: color-mix(in srgb, var(--m3-on-surface) 8%, transparent);
           }
-          .theme-material3 tbody tr:last-child td {
-            border-bottom: none;
+          .theme-material3 .m3-dest-cell {
+            flex: 1 1 auto;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
           }
-          .theme-material3 .treno-scrollable-text span,
-          .theme-material3 .treno-ritardo-box span {
+          .theme-material3 .m3-train-icon {
+            color: var(--m3-on-surface-variant);
+            flex-shrink: 0;
+            --mdc-icon-size: 20px;
+          }
+          .theme-material3 .m3-destination {
+            flex: 1 1 auto;
+            min-width: 0;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            line-height: 1.25rem;
             color: var(--m3-on-surface);
           }
-          .theme-material3 .treno-scrollable-text span {
-            font-weight: 500;
+          .theme-material3 .m3-destination span {
+            color: var(--m3-on-surface);
+          }
+          .theme-material3 .m3-time-cell {
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+          }
+          .theme-material3 .m3-departing-dots {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            flex-shrink: 0;
+          }
+          .theme-material3 .m3-departing-dots span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--m3-primary);
+            animation: m3-train-blink 1s steps(1, end) infinite;
+          }
+          .theme-material3 .m3-departing-dots span:nth-child(2) {
+            animation-delay: 0.5s;
+          }
+          @keyframes m3-train-blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0.16; }
+          }
+          .theme-material3 .m3-time-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 52px;
+            height: 28px;
+            padding: 0 10px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.01em;
+          }
+          .theme-material3 .m3-time-pill.m3-time-ontime {
+            background: var(--m3-success-container);
+            color: var(--m3-success);
+          }
+          .theme-material3 .m3-time-pill.m3-time-late {
+            background: var(--m3-error-container);
+            color: var(--m3-on-error-container);
+          }
+          .theme-material3 .m3-platform-cell {
+            flex: 0 0 48px;
+            display: flex;
+            justify-content: center;
           }
           .theme-material3 .treno-platform-badge {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 26px;
-            height: 24px;
+            min-width: 32px;
+            height: 28px;
             padding: 0 8px;
-            border-radius: 6px;
+            border-radius: 8px;
             background: var(--m3-surface-highest);
             color: var(--m3-on-surface);
             font-size: 0.8125rem;
             font-weight: 500;
             font-variant-numeric: tabular-nums;
+            box-sizing: border-box;
           }
           .theme-material3 .treno-platform-badge.treno-platform-changed {
             background: var(--m3-tertiary-container);
             color: var(--m3-on-tertiary-container);
           }
-          .theme-material3 .treno-platform-arrow {
-            color: var(--m3-on-surface-variant);
-            font-size: 0.8125rem;
-            align-self: center;
-          }
-          .theme-material3 .treno-platform-info {
-            margin-top: 4px;
-            align-items: center;
-          }
-          .theme-material3 .treno-mobile-view .treno-platform-badge {
-            margin-top: 4px;
-          }
-          .theme-material3 .treno-mobile-view .treno-platform-info .treno-platform-badge {
-            margin-top: 0;
-          }
-          .theme-material3 .status-chip {
-            border-radius: 8px;
-            padding: 3px 8px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            line-height: 1.125rem;
-            letter-spacing: 0.01em;
-            animation: none;
-            box-shadow: none;
-          }
-          .theme-material3 .status-chip.on-time {
-            background: color-mix(in srgb, var(--success-color, #2E7D32) 14%, transparent);
-            color: var(--success-color, #2E7D32);
-            border: 1px solid color-mix(in srgb, var(--success-color, #2E7D32) 28%, transparent);
-          }
-          .theme-material3 .status-chip.delayed {
-            background: color-mix(in srgb, var(--warning-color, #B26A00) 15%, transparent);
-            color: var(--warning-color, #B26A00);
-            border: 1px solid color-mix(in srgb, var(--warning-color, #B26A00) 30%, transparent);
-            animation: none;
-          }
-          .theme-material3 .status-chip.late {
-            background: var(--m3-error-container);
-            color: var(--m3-on-error-container);
-            border: 1px solid color-mix(in srgb, var(--error-color, #B3261E) 30%, transparent);
-            animation: none;
-          }
           .theme-material3 .treno-table-scroll {
+            max-height: calc(10 * 56px);
             scrollbar-color: var(--m3-outline-variant) transparent;
           }
           .theme-material3 .treno-table-scroll::-webkit-scrollbar-thumb {
             background: var(--m3-outline-variant);
+          }
+          .theme-material3 .treno-page {
+            padding: 0;
           }
 
           ha-card {
@@ -1681,27 +1925,58 @@ class MyTrenoCard extends HTMLElement {
           }
         </style>
         <ha-card>
-          <div class="treno-stripe-top"></div>
-          <div class="treno-nav-button" id="nextBtn">→</div>
-          <div class="treno-slider-wrapper">
-            <div class="treno-slider">
-              <div class="treno-page">
-                <div class="treno-title">${window.myTrenoT('departures', this._getLang())} ${stationName}</div>
-                <div class="treno-table-scroll">
-                  ${this._renderTable(partenze, "destinazione", "destination", true)}
-                  ${this._renderTable(partenze, "destinazione", "destination", false)}
-                </div>
+          ${this._theme === 'material3' ? `
+            <div class="m3-header">
+              <div class="m3-header-top">
+                <div class="m3-station-icon"><ha-icon icon="mdi:train-variant"></ha-icon></div>
+                <div class="m3-station-title">${stationName}</div>
               </div>
-              <div class="treno-page">
-                <div class="treno-title">${window.myTrenoT('arrivals', this._getLang())} ${stationName}</div>
-                <div class="treno-table-scroll">
-                  ${this._renderTable(arrivi, "provenienza", "provenance", true)}
-                  ${this._renderTable(arrivi, "provenienza", "provenance", false)}
+              <div class="m3-segmented" role="tablist">
+                <button type="button" class="m3-segment ${this.page === 0 ? 'active' : ''}" data-page="0" role="tab" aria-selected="${this.page === 0}">
+                  <md-ripple></md-ripple>
+                  <span class="m3-check"><ha-icon icon="mdi:check"></ha-icon></span>
+                  <span>${window.myTrenoT('departures_tab', this._getLang())}</span>
+                </button>
+                <button type="button" class="m3-segment ${this.page === 1 ? 'active' : ''}" data-page="1" role="tab" aria-selected="${this.page === 1}">
+                  <md-ripple></md-ripple>
+                  <span class="m3-check"><ha-icon icon="mdi:check"></ha-icon></span>
+                  <span>${window.myTrenoT('arrivals_tab', this._getLang())}</span>
+                </button>
+              </div>
+            </div>
+            <div class="treno-slider-wrapper">
+              <div class="treno-slider">
+                <div class="treno-page">
+                  ${this._renderMaterial3List(partenze, "destinazione", "destination")}
+                </div>
+                <div class="treno-page">
+                  ${this._renderMaterial3List(arrivi, "provenienza", "provenance")}
                 </div>
               </div>
             </div>
-          </div>
-          <div class="treno-stripe-bottom"></div>
+          ` : `
+            <div class="treno-stripe-top"></div>
+            <div class="treno-nav-button" id="nextBtn">→</div>
+            <div class="treno-slider-wrapper">
+              <div class="treno-slider">
+                <div class="treno-page">
+                  <div class="treno-title">${window.myTrenoT('departures', this._getLang())} ${stationName}</div>
+                  <div class="treno-table-scroll">
+                    ${this._renderTable(partenze, "destinazione", "destination", true)}
+                    ${this._renderTable(partenze, "destinazione", "destination", false)}
+                  </div>
+                </div>
+                <div class="treno-page">
+                  <div class="treno-title">${window.myTrenoT('arrivals', this._getLang())} ${stationName}</div>
+                  <div class="treno-table-scroll">
+                    ${this._renderTable(arrivi, "provenienza", "provenance", true)}
+                    ${this._renderTable(arrivi, "provenienza", "provenance", false)}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="treno-stripe-bottom"></div>
+          `}
         </ha-card>
       </div>
     `;
@@ -1717,12 +1992,62 @@ class MyTrenoCard extends HTMLElement {
       });
     });
 
+    this.querySelectorAll('.m3-list').forEach(list => {
+      list.addEventListener('click', (event) => {
+        const item = event.target.closest('.m3-list-item');
+        if (item && item.dataset.treno) {
+          this._showTrainDetails(JSON.parse(decodeURIComponent(item.dataset.treno)));
+        }
+      });
+    });
+
     this._updateScrollingText();
 
-    this.querySelector("#nextBtn").addEventListener("click", () => {
-      this.page = (this.page + 1) % 2;
-      this._updateSlide();
-    });
+    const nextBtn = this.querySelector("#nextBtn");
+    if (nextBtn) {
+      nextBtn.addEventListener("click", () => {
+        this.page = (this.page + 1) % 2;
+        this._updateSlide();
+      });
+    }
+
+    const segments = this.querySelectorAll(".m3-segment");
+    if (segments.length > 0) {
+      const updateSegments = (activeIdx) => {
+        segments.forEach((btn, idx) => {
+          const isActive = idx === activeIdx;
+          btn.classList.toggle("active", isActive);
+          btn.setAttribute("aria-selected", String(isActive));
+        });
+      };
+      segments.forEach(btn => {
+        btn.addEventListener("click", () => {
+          this.page = Number(btn.dataset.page) || 0;
+          updateSegments(this.page);
+          this._updateSlide();
+        });
+      });
+      const slider = this.querySelector(".treno-slider");
+      if (slider) {
+        if (this.page > 0) {
+          requestAnimationFrame(() => {
+            const pages = slider.querySelectorAll(".treno-page");
+            if (pages[this.page]) slider.scrollTo({ left: pages[this.page].offsetLeft });
+          });
+        }
+        let scrollTimer;
+        slider.addEventListener("scroll", () => {
+          clearTimeout(scrollTimer);
+          scrollTimer = setTimeout(() => {
+            const idx = Math.round(slider.scrollLeft / Math.max(slider.clientWidth, 1));
+            if (idx !== this.page && (idx === 0 || idx === 1)) {
+              this.page = idx;
+              updateSegments(this.page);
+            }
+          }, 80);
+        }, { passive: true });
+      }
+    }
 
     // Kick off background route fetching for hasStop filter
     if (this._hasStop && this._fetchQueue.length > 0) {
@@ -1762,6 +2087,67 @@ class MyTrenoCard extends HTMLElement {
       sanitized = sanitized.replace(new RegExp(`\\b${n}T\\b`, 'gi'), `${n}/T`);
     }
     return sanitized;
+  }
+
+  _isDepartingSoon(train) {
+    if (!train) return false;
+    if (train.in_stazione === true || train.lampeggiante === true) return true;
+    const match = String(train.orario || "").match(/^(\d{1,2}):(\d{2})/);
+    if (!match) return false;
+    const scheduledMin = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
+    const delayMin = Number(train.ritardo) || 0;
+    const effectiveMin = (scheduledMin + delayMin + 1440) % 1440;
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    let diff = effectiveMin - nowMin;
+    if (diff < -720) diff += 1440;
+    if (diff > 720) diff -= 1440;
+    return diff >= -1 && diff <= 5;
+  }
+
+  _renderMaterial3List(data, field, label) {
+    return `
+      <div class="m3-list-header">
+        <span class="m3-col-dest">${window.myTrenoT(label, this._getLang())}</span>
+        <span class="m3-col-time">${window.myTrenoT('orario', this._getLang())}</span>
+        <span class="m3-col-platform">${window.myTrenoT('platform', this._getLang())}</span>
+      </div>
+      <div class="treno-table-scroll">
+        <div class="m3-list">
+          ${data.map(t => {
+            const name = t[field] || "-";
+            const binarioPrevisto = this._sanitizePlatform(t.binario_previsto);
+            const binarioEffettivo = this._sanitizePlatform(t.binario_effettivo);
+            const platformChanged = binarioEffettivo !== binarioPrevisto && binarioEffettivo !== "-";
+            const platformDisplay = binarioEffettivo !== "-" ? binarioEffettivo : binarioPrevisto;
+            const delay = Number(t.ritardo) || 0;
+            const isLate = delay > 0;
+            const delayTitle = isLate
+              ? window.myTrenoT('late', this._getLang(), { delay })
+              : delay < 0
+                ? window.myTrenoT('early', this._getLang(), { delay })
+                : window.myTrenoT('on_time', this._getLang());
+            const isDeparting = this._isDepartingSoon(t);
+            const tEncoded = encodeURIComponent(JSON.stringify(t));
+            return `
+              <div class="m3-list-item" data-treno="${tEncoded}">
+                <md-ripple></md-ripple>
+                <div class="m3-dest-cell">
+                  <ha-icon class="m3-train-icon" icon="mdi:train"></ha-icon>
+                  <div class="treno-scrollable-text m3-destination"><span>${name}</span></div>
+                </div>
+                <div class="m3-time-cell">
+                  ${isDeparting ? `<span class="m3-departing-dots" aria-hidden="true"><span></span><span></span></span>` : ''}
+                  <span class="m3-time-pill ${isLate ? 'm3-time-late' : 'm3-time-ontime'}" title="${delayTitle}">${t.orario || '--:--'}</span>
+                </div>
+                <div class="m3-platform-cell">
+                  <div class="treno-platform-badge${platformChanged ? ' treno-platform-changed' : ''}"${platformChanged ? ` title="${binarioPrevisto} → ${binarioEffettivo}"` : ''}>${platformDisplay}</div>
+                </div>
+              </div>`;
+          }).join("")}
+        </div>
+      </div>
+    `;
   }
 
   _renderTable(data, field, label, isDesktop) {
@@ -1956,6 +2342,9 @@ class MyTrenoTrackingCard extends HTMLElement {
     if (!config.sensor) throw new Error(window.myTrenoT('missing_sensor', this._getLang()));
     this._sensor = config.sensor;
     this._theme = config.theme || "default";
+    if (this._theme === "material3") {
+      loadMaterialWeb();
+    }
     this._config = config;
   }
 
@@ -2003,19 +2392,55 @@ class MyTrenoTrackingCard extends HTMLElement {
     this.appendChild(style);
     const card = document.createElement("ha-card");
     card.className = `tracking-treno-popup theme-${this._theme}`;
-    card.innerHTML = `
-      <div class="tracking-treno-popup-content">
-        ${this._config.title ? `<p class="treno-custom-title">${this._config.title}</p>` : ""}
-        <h3>${titolo}</h3>
-        <p><strong>${window.myTrenoT('delay', this._getLang())}:</strong> ${ritardo}</p>
-        <p><strong>${window.myTrenoT('next', this._getLang())}:</strong> ${prossima} (${orario})</p>
-        <div class="tracking-percorso-toggle">
-          <span>${window.myTrenoT('show_route', this._getLang())}</span>
-          <ha-icon icon="mdi:chevron-down"></ha-icon>
+    const isM3 = this._theme === "material3";
+    if (isM3) {
+      const delayNum = parseInt(newState, 10);
+      const isLate = !Number.isNaN(delayNum) && delayNum > 0;
+      const delayTitle = !Number.isNaN(delayNum)
+        ? (delayNum > 0
+          ? window.myTrenoT('late', this._getLang(), { delay: delayNum })
+          : delayNum < 0
+            ? window.myTrenoT('early', this._getLang(), { delay: delayNum })
+            : window.myTrenoT('on_time', this._getLang()))
+        : ritardo;
+      card.innerHTML = `
+        <div class="tracking-treno-popup-content">
+          <div class="m3-tracking-header">
+            <div class="m3-tracking-icon"><ha-icon icon="mdi:train"></ha-icon></div>
+            <div class="m3-tracking-titles">
+              ${this._config.title ? `<span class="treno-custom-title">${this._config.title}</span>` : ""}
+              <h3>${this._config.title ? `${window.myTrenoT('train', this._getLang())} ${data.train_number || "??"}` : titolo}</h3>
+            </div>
+            <span class="m3-time-pill ${isLate ? 'm3-time-late' : 'm3-time-ontime'}" title="${delayTitle}">${orario}</span>
+          </div>
+          <div class="m3-tracking-next">
+            <span class="m3-tracking-next-label">${window.myTrenoT('next', this._getLang())}</span>
+            <span class="m3-tracking-next-value">${prossima}</span>
+          </div>
+          <div class="m3-tracking-actions">
+            <md-filled-tonal-button class="tracking-percorso-toggle m3-route-btn" trailing-icon>
+              ${window.myTrenoT('show_route', this._getLang())}
+              <ha-icon slot="icon" icon="mdi:chevron-down"></ha-icon>
+            </md-filled-tonal-button>
+          </div>
+          <div class="tracking-fermate collapsed">${fermateHTML}</div>
         </div>
-        <div class="tracking-fermate collapsed">${fermateHTML}</div>
-      </div>
-    `;
+      `;
+    } else {
+      card.innerHTML = `
+        <div class="tracking-treno-popup-content">
+          ${this._config.title ? `<p class="treno-custom-title">${this._config.title}</p>` : ""}
+          <h3>${titolo}</h3>
+          <p><strong>${window.myTrenoT('delay', this._getLang())}:</strong> ${ritardo}</p>
+          <p><strong>${window.myTrenoT('next', this._getLang())}:</strong> ${prossima} (${orario})</p>
+          <div class="tracking-percorso-toggle">
+            <span>${window.myTrenoT('show_route', this._getLang())}</span>
+            <ha-icon icon="mdi:chevron-down"></ha-icon>
+          </div>
+          <div class="tracking-fermate collapsed">${fermateHTML}</div>
+        </div>
+      `;
+    }
     this.appendChild(card);
     requestAnimationFrame(() => {
       const scrollContainer = this.querySelector(".tracking-treno-timeline-scroll");
@@ -2310,69 +2735,146 @@ class MyTrenoTrackingCard extends HTMLElement {
       /* ── MATERIAL 3 THEME (Tracking Card) ── */
       .tracking-treno-popup.theme-material3 {
         --m3-surface: var(--md-sys-color-surface-container-low, var(--ha-card-background, var(--card-background-color, #F7F2FA)));
+        --m3-surface-container: var(--md-sys-color-surface-container, color-mix(in srgb, var(--primary-text-color, #1D1B20) 5%, transparent));
         --m3-on-surface: var(--md-sys-color-on-surface, var(--primary-text-color, #1D1B20));
         --m3-on-surface-variant: var(--md-sys-color-on-surface-variant, var(--secondary-text-color, #49454F));
         --m3-primary: var(--md-sys-color-primary, var(--primary-color, #6750A4));
-        --m3-primary-container: var(--md-sys-color-primary-container, color-mix(in srgb, var(--primary-color, #6750A4) 20%, transparent));
-        --m3-secondary-container: var(--md-sys-color-secondary-container, color-mix(in srgb, var(--primary-color, #6750A4) 14%, transparent));
-        --m3-on-secondary-container: var(--md-sys-color-on-secondary-container, var(--primary-color, #6750A4));
+        --m3-primary-container: var(--md-sys-color-primary-container, color-mix(in srgb, var(--primary-color, #6750A4) 18%, transparent));
+        --m3-on-primary-container: var(--md-sys-color-on-primary-container, var(--primary-color, #21005D));
+        --m3-secondary-container: var(--md-sys-color-secondary-container, color-mix(in srgb, var(--primary-color, #6750A4) 15%, transparent));
+        --m3-on-secondary-container: var(--md-sys-color-on-secondary-container, var(--primary-color, #1D192B));
         --m3-outline: var(--md-sys-color-outline, var(--secondary-text-color, #79747E));
         --m3-outline-variant: var(--md-sys-color-outline-variant, var(--ha-card-border-color, var(--divider-color, #CAC4D0)));
+        --m3-error-container: var(--md-sys-color-error-container, color-mix(in srgb, var(--error-color, #B3261E) 15%, transparent));
+        --m3-on-error-container: var(--md-sys-color-on-error-container, var(--error-color, #B3261E));
+        --m3-success: var(--success-color, #2E7D32);
+        --m3-success-container: color-mix(in srgb, var(--success-color, #2E7D32) 15%, transparent);
+        --md-filled-tonal-button-container-color: var(--m3-secondary-container);
+        --md-filled-tonal-button-label-text-color: var(--m3-on-secondary-container);
+        --md-filled-tonal-button-hover-label-text-color: var(--m3-on-secondary-container);
+        --md-filled-tonal-button-pressed-label-text-color: var(--m3-on-secondary-container);
+        --md-filled-tonal-button-focus-label-text-color: var(--m3-on-secondary-container);
+        --md-filled-tonal-button-icon-color: var(--m3-on-secondary-container);
+        --md-filled-tonal-button-hover-icon-color: var(--m3-on-secondary-container);
+        --md-filled-tonal-button-container-shape: 9999px;
         --mytreno-text-color: var(--m3-on-surface);
         --mytreno-info-color: var(--m3-on-surface-variant);
         --mytreno-title-color: var(--m3-on-surface);
         background: var(--m3-surface);
         color: var(--m3-on-surface);
         font-family: var(--ha-font-family-body, Roboto, 'Google Sans', system-ui, -apple-system, sans-serif);
-        border-radius: var(--ha-card-border-radius, 12px);
+        border-radius: var(--ha-card-border-radius, 16px);
         border: var(--ha-card-border-width, 1px) solid var(--m3-outline-variant);
         box-shadow: var(--ha-card-box-shadow, 0 1px 2px rgba(0, 0, 0, 0.12), 0 1px 3px 1px rgba(0, 0, 0, 0.08));
-        padding: 16px 0 8px;
+        padding: 16px 0 12px;
         backdrop-filter: none;
+      }
+      .tracking-treno-popup.theme-material3 .m3-tracking-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 16px 12px;
+      }
+      .tracking-treno-popup.theme-material3 .m3-tracking-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--m3-primary-container);
+        color: var(--m3-on-primary-container);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        --mdc-icon-size: 20px;
+      }
+      .tracking-treno-popup.theme-material3 .m3-tracking-titles {
+        flex: 1 1 auto;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
       }
       .tracking-treno-popup.theme-material3 .treno-custom-title {
         font-size: 0.75rem;
         font-weight: 500;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
+        letter-spacing: 0.03em;
         color: var(--m3-on-surface-variant);
-        padding: 0 20px;
-        margin: 0 0 2px;
+        padding: 0;
+        margin: 0;
       }
       .tracking-treno-popup.theme-material3 .tracking-treno-popup-content h3 {
         color: var(--m3-on-surface);
-        font-size: 1.375rem;
-        font-weight: 400;
-        line-height: 1.75rem;
-        margin: 0 20px 10px;
-      }
-      .tracking-treno-popup.theme-material3 .tracking-treno-popup-content p {
-        font-size: 0.875rem;
-        line-height: 1.4;
-        margin: 4px 0;
-        padding: 0 20px;
-        color: var(--m3-on-surface);
-      }
-      .tracking-treno-popup.theme-material3 .tracking-treno-popup-content strong {
-        color: var(--m3-on-surface-variant);
+        font-size: 1.25rem;
         font-weight: 500;
+        line-height: 1.6rem;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
-      .tracking-treno-popup.theme-material3 .tracking-percorso-toggle {
+      .tracking-treno-popup.theme-material3 .m3-time-pill {
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        min-width: 52px;
+        height: 28px;
+        padding: 0 10px;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        flex-shrink: 0;
+      }
+      .tracking-treno-popup.theme-material3 .m3-time-pill.m3-time-ontime {
+        background: var(--m3-success-container);
+        color: var(--m3-success);
+      }
+      .tracking-treno-popup.theme-material3 .m3-time-pill.m3-time-late {
+        background: var(--m3-error-container);
+        color: var(--m3-on-error-container);
+      }
+      .tracking-treno-popup.theme-material3 .m3-tracking-next {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 0 16px 12px;
+        padding: 10px 14px;
+        border-radius: 14px;
+        background: var(--m3-surface-container);
+      }
+      .tracking-treno-popup.theme-material3 .m3-tracking-next-label {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--m3-on-surface-variant);
+      }
+      .tracking-treno-popup.theme-material3 .m3-tracking-next-value {
+        font-size: 0.9375rem;
+        font-weight: 500;
+        color: var(--m3-on-surface);
+        text-align: right;
+      }
+      .tracking-treno-popup.theme-material3 .m3-tracking-actions {
+        display: flex;
+        justify-content: flex-end;
+        padding: 0 16px 4px;
+      }
+      .tracking-treno-popup.theme-material3 .m3-route-btn {
+        display: inline-flex;
+        align-items: center;
         gap: 6px;
-        margin: 12px 20px 8px;
-        padding: 6px 14px;
+        height: 40px;
+        padding: 0 18px;
         border-radius: 9999px;
         background: var(--m3-secondary-container);
         color: var(--m3-on-secondary-container);
         font-size: 0.875rem;
         font-weight: 500;
-        transition: background-color 0.15s ease;
+        cursor: pointer;
+        --mdc-icon-size: 18px;
       }
-      .tracking-treno-popup.theme-material3 .tracking-percorso-toggle:hover {
-        background: color-mix(in srgb, var(--m3-on-secondary-container) 10%, var(--m3-secondary-container));
+      .tracking-treno-popup.theme-material3 .m3-route-btn:defined {
+        padding: 0;
+        background: transparent;
       }
       .tracking-treno-popup.theme-material3 .tracking-treno-timeline-scroll {
         scrollbar-color: var(--m3-outline-variant) transparent;
