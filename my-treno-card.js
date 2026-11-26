@@ -23,6 +23,148 @@ const loadMaterialWeb = () => {
   });
 };
 
+const MYTRENO_THEME_FONTS = {
+  default: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+  light: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+  neon: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+  retro: "https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap",
+  trenitalia: "https://fonts.googleapis.com/css2?family=VT323&display=swap",
+};
+
+const loadThemeFont = (theme) => {
+  const href = MYTRENO_THEME_FONTS[theme];
+  if (!href || typeof document === "undefined") return;
+  if (!window.__myTrenoFontsLoaded) window.__myTrenoFontsLoaded = new Set();
+  if (window.__myTrenoFontsLoaded.has(href)) return;
+  window.__myTrenoFontsLoaded.add(href);
+  if (!document.querySelector(`link[rel="stylesheet"][href="${href}"]`)) {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = href;
+    document.head.appendChild(link);
+  }
+};
+
+const escapeHtml = (value) =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const getSharedTimelineStyles = (rootSel, prefix) => `
+  ${rootSel} .${prefix}timeline-scroll {
+    overflow-x: auto;
+    overflow-y: visible;
+    position: relative;
+    scrollbar-width: thin;
+    scrollbar-color: #999 transparent;
+  }
+  ${rootSel} .${prefix}timeline-scroll::-webkit-scrollbar {
+    height: 6px;
+  }
+  ${rootSel} .${prefix}timeline-scroll::-webkit-scrollbar-thumb {
+    background-color: #999;
+    border-radius: 10px;
+  }
+  ${rootSel} .${prefix}timeline {
+    display: flex;
+    position: relative;
+    flex-direction: row;
+    min-height: 200px;
+    width: fit-content;
+    align-items: end;
+    gap: 0;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  ${rootSel} .${prefix}timeline::before {
+    content: '';
+    position: absolute;
+    top: 77.5%;
+    transform: translateY(-50%);
+    left: 0;
+    width: var(--timeline-line-width, 100%);
+    height: 8px;
+    background: #0010ff;
+    z-index: 0;
+  }
+  ${rootSel} .${prefix}stop {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 80px;
+    max-width: 80px;
+    min-height: 100px;
+    max-height: 100px;
+  }
+  ${rootSel} .${prefix}stop .label {
+    transform: rotate(-35deg);
+    transform-origin: bottom left;
+    font-size: 0.7rem;
+    font-weight: 800;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: visible;
+    max-width: 70px;
+    margin-bottom: 1.2rem;
+    height: 2rem;
+    line-height: 8;
+    text-align: left;
+    color: var(--mytreno-text-color, #ffffff);
+    margin-left: 50px;
+  }
+  ${rootSel} .${prefix}stop .dot {
+    width: 16px;
+    height: 16px;
+    background: #ccc;
+    border-radius: 50%;
+    position: relative;
+    z-index: 1;
+    border: 2px solid #fff;
+    transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+  }
+  ${rootSel} .${prefix}stop:hover .dot {
+    transform: scale(1.2);
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+  }
+  ${rootSel} .${prefix}stop.done .dot {
+    background: #4caf50;
+    opacity: 0.4;
+  }
+  ${rootSel} .${prefix}stop.next .dot {
+    background: #ff9800;
+    box-shadow: 0 0 6px #ff9800, 0 0 12px rgba(255, 152, 0, 0.4);
+    animation: pulse-dot 1.5s infinite;
+  }
+  @keyframes pulse-dot {
+    0% { box-shadow: 0 0 0 0 rgba(255,152,0,0.6); }
+    70% { box-shadow: 0 0 0 10px rgba(255,152,0,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,152,0,0); }
+  }
+  ${rootSel} .${prefix}stop .info {
+    font-size: 0.8rem;
+    margin-top: 0.6rem;
+    color: var(--mytreno-info-color, #ffffff);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-align: center;
+    line-height: 1.2;
+  }
+  ${rootSel} .${prefix}stop .info span:first-child {
+    font-weight: 600;
+  }
+  ${rootSel} .${prefix}stop .info span:last-child {
+    font-style: italic;
+    font-size: 0.75rem;
+    opacity: 0.8;
+  }
+`;
+
 // 1. OGGETTO GLOBALE TRADUZIONI E FUNZIONE GLOBALE
 if (!window.MyTrenoTranslations) window.MyTrenoTranslations = {
   it: {
@@ -30,6 +172,8 @@ if (!window.MyTrenoTranslations) window.MyTrenoTranslations = {
     arrivals: "Arrivi a",
     departures_tab: "Partenze",
     arrivals_tab: "Arrivi",
+    departed: "Partito",
+    arrived: "Arrivato",
     destination: "Destinazione",
     provenance: "Provenienza",
     delay: "Ritardo",
@@ -69,6 +213,8 @@ if (!window.MyTrenoTranslations) window.MyTrenoTranslations = {
     arrivals: "Arrivals at",
     departures_tab: "Departures",
     arrivals_tab: "Arrivals",
+    departed: "Departed",
+    arrived: "Arrived",
     destination: "Destination",
     provenance: "From",
     delay: "Delay",
@@ -130,12 +276,11 @@ class MyTrenoCardEditor extends LitElement {
   }
 
   setConfig(config) {
-    // Imposta valore di default se mancante
-    if (!config.extra_sensor) {
-      config.extra_sensor = "sensor.mytreno_selected_train";
-    }
-
-    this._config = { ...config };
+    // Copia difensiva: HA può passare un oggetto config frozen
+    this._config = {
+      ...config,
+      extra_sensor: config.extra_sensor || "sensor.mytreno_selected_train",
+    };
   }
 
   getConfig() {
@@ -242,16 +387,64 @@ class MyTrenoCard extends HTMLElement {
     this._routeCache = {};
     this._fetchQueue = [];
     this._fetchingRoute = false;
+    this._departingTimer = null;
+    this._pendingRender = false;
   }
 
   connectedCallback() {
     window.addEventListener('resize', this._resizeHandler);
     document.addEventListener('visibilitychange', this._visibilityHandler);
     this._updateScrollingText();
+    if (!this._departingTimer) {
+      this._departingTimer = setInterval(() => {
+        if (!document.hidden && this._theme === "material3") {
+          this._refreshDepartingDots();
+        }
+      }, 30000);
+    }
   }
   disconnectedCallback() {
     window.removeEventListener('resize', this._resizeHandler);
     document.removeEventListener('visibilitychange', this._visibilityHandler);
+    if (this._departingTimer) {
+      clearInterval(this._departingTimer);
+      this._departingTimer = null;
+    }
+  }
+
+  _refreshDepartingDots() {
+    this.querySelectorAll('.m3-list-item[data-treno]').forEach(item => {
+      try {
+        const train = JSON.parse(decodeURIComponent(item.dataset.treno));
+        const isDeparted = this._isDeparted(train);
+        const isDeparting = !isDeparted && this._isDepartingSoon(train);
+        const timeCell = item.querySelector('.m3-time-cell');
+        if (!timeCell) return;
+        const existingDots = timeCell.querySelector('.m3-departing-dots');
+        if (isDeparting && !existingDots) {
+          const dots = document.createElement('span');
+          dots.className = 'm3-departing-dots';
+          dots.setAttribute('aria-hidden', 'true');
+          dots.innerHTML = '<span></span><span></span>';
+          timeCell.insertBefore(dots, timeCell.firstChild);
+        } else if (!isDeparting && existingDots) {
+          existingDots.remove();
+        }
+        if (isDeparted && !item.classList.contains('m3-departed')) {
+          item.classList.add('m3-departed');
+          const pill = timeCell.querySelector('.m3-time-pill');
+          if (pill) {
+            const isArrival = item.dataset.kind === 'arrivals';
+            const label = window.myTrenoT(isArrival ? 'arrived' : 'departed', this._getLang());
+            const timeText = escapeHtml(train.orario || '--:--');
+            pill.classList.remove('m3-time-ontime', 'm3-time-late', 'm3-time-unknown');
+            pill.classList.add('m3-time-departed');
+            pill.setAttribute('title', `${label} (${train.orario || '--:--'})`);
+            pill.innerHTML = `<span class="m3-time-value">${timeText}</span><span class="m3-departed-label">${label}</span>`;
+          }
+        }
+      } catch (_) {}
+    });
   }
 
   _updateScrollingText() {
@@ -315,137 +508,24 @@ class MyTrenoCard extends HTMLElement {
     // Stili applicati subito: anche la schermata di caricamento eredita il tema
     const styleTag = document.createElement("style");
     styleTag.textContent = `
-        .fermate {
+        .treno-popup .fermate {
           margin: 0;
           padding: 0;
           overflow: visible !important;
           max-height: none !important;
         }
-        .fermate li { line-height:1.4em; }
-        .fermate li.done { opacity:.4; text-decoration:line-through; }
-        .bin { font-size:.8em; opacity:.7; }
-        .treno-popup-content p {
+        .treno-popup .fermate li { line-height:1.4em; }
+        .treno-popup .fermate li.done { opacity:.4; text-decoration:line-through; }
+        .treno-popup .bin { font-size:.8em; opacity:.7; }
+        .treno-popup .treno-popup-content p {
           margin: 0.75rem 0;
           line-height: 1.4;
         }
-        .treno-timeline-scroll {
-          overflow-x: auto;
-          overflow-y: visible;
+        .treno-popup .treno-timeline-scroll {
           padding: 0;
           margin-top: 1rem;
-          position: relative;
-          scrollbar-width: thin;
-          scrollbar-color: #999 transparent;
         }
-        .treno-timeline-scroll::-webkit-scrollbar {
-          height: 6px;
-        }
-        .treno-timeline-scroll::-webkit-scrollbar-thumb {
-          background-color: #999;
-          border-radius: 10px;
-        }
-        .treno-timeline {
-        	display: flex;
-        	position: relative;
-        	flex-direction: row;
-        	min-height: 200px;
-        	width: fit-content;
-        	align-items: end;
-        	gap: 0;
-        	justify-content: center;
-        	margin-bottom: 20px;
-        }
-        .treno-timeline::before {
-        	content: '';
-        	position: absolute;
-        	top: 77.5%;
-        	transform: translateY(-50%);
-        	left: 0;
-        	width: var(--timeline-line-width, 100%);
-        	height: 8px;
-        	background: #0010ff;
-        	z-index: 0;
-        }
-        .treno-stop {
-          flex: 0 0 auto;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          min-width: 80px;
-          max-width: 80px;
-          min-height: 100px;
-          max-height: 100px;
-
-        }
-        .treno-stop .label {
-        	transform: rotate(-35deg);
-        	transform-origin: bottom left;
-        	font-size: 0.7rem;
-        	font-weight: 800;
-        	white-space: nowrap;
-        	text-overflow: ellipsis;
-        	overflow: visible;
-        	max-width: 70px;
-        	margin-bottom: 1.2rem;
-        	height: 2rem;
-        	line-height: 8;
-        	text-align: left;
-        	color: var(--mytreno-text-color, #ffffff);
-        	margin-left: 50px;
-        }
-        .treno-stop .dot {
-          width: 16px;
-          height: 16px;
-          background: #ccc;
-          border-radius: 50%;
-          position: relative;
-          z-index: 1;
-          border: 2px solid #fff;
-          transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .treno-stop:hover .dot {
-          transform: scale(1.2);
-          box-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
-        }
-
-        .treno-stop.done .dot {
-          background: #4caf50;
-          opacity: 0.4;
-        }
-        .treno-stop.next .dot {
-          background: #ff9800;
-          box-shadow: 0 0 6px #ff9800, 0 0 12px rgba(255, 152, 0, 0.4);
-          animation: pulse-dot 1.5s infinite;
-        }
-
-        @keyframes pulse-dot {
-          0% { box-shadow: 0 0 0 0 rgba(255,152,0,0.6); }
-          70% { box-shadow: 0 0 0 10px rgba(255,152,0,0); }
-          100% { box-shadow: 0 0 0 0 rgba(255,152,0,0); }
-        }
-
-        .treno-stop .info {
-          font-size: 0.8rem;
-          margin-top: 0.6rem;
-          color: var(--mytreno-info-color, #ffffff);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 2px;
-          text-align: center;
-          line-height: 1.2;
-        }
-
-        .treno-stop .info span:first-child {
-          font-weight: 600;
-        }
-
-        .treno-stop .info span:last-child {
-          font-style: italic;
-          font-size: 0.75rem;
-          opacity: 0.8;
-        }
+        ${getSharedTimelineStyles('.treno-popup', 'treno-')}
 
         .treno-popup.theme-light {
           --mytreno-text-color: #000;
@@ -753,53 +833,51 @@ class MyTrenoCard extends HTMLElement {
         }
       }, 2000);
     }
+    const closePopup = () => {
+      overlay.remove();
+      this._popupOpen = false;
+      if (this._pendingRender) {
+        this._pendingRender = false;
+        this._render();
+      }
+    };
     overlay.addEventListener("click", e => {
-      if (e.target === overlay) { overlay.remove(); this._popupOpen = false; }
+      if (e.target === overlay) closePopup();
     });
-    popup.querySelector(".close-btn").addEventListener("click", () => { overlay.remove(); this._popupOpen = false; });
+    popup.querySelector(".close-btn").addEventListener("click", closePopup);
 
     // Controlla se il sensore ha già i dati freschi per questo treno
-    const cachedAttrs = this._hass.states["sensor.mytreno_selected_train"]?.attributes ?? {};
-    console.log(`[MyTreno] click treno: treno.treno=${treno.treno}, trainNum=${trainNum} (${typeof trainNum})`);
-    console.log(`[MyTreno] sensore attuale: train_number=${cachedAttrs.train_number} (${typeof cachedAttrs.train_number}), fermate=${Array.isArray(cachedAttrs.fermate) ? cachedAttrs.fermate.length : 'N/A'}`);
+    const extraEntityId = this._extra || "sensor.mytreno_selected_train";
+    const cachedAttrs = this._hass.states[extraEntityId]?.attributes ?? {};
     const hasFreshData = String(cachedAttrs.train_number) === String(trainNum) &&
       Array.isArray(cachedAttrs.fermate) && cachedAttrs.fermate.length > 0;
-    console.log(`[MyTreno] hasFreshData=${hasFreshData}`);
 
     let attrs;
     if (hasFreshData) {
-      console.log(`[MyTreno] ✅ cache hit, dati già disponibili`);
       attrs = cachedAttrs;
     } else {
-      const t0 = Date.now();
-      console.log(`[MyTreno] chiamo set_train con train_number=${trainNum} alle ${new Date().toISOString()}`);
       let serviceOk = true;
       try {
         await this._hass.callService("mytreno", "set_train", { train_number: trainNum });
       } catch (e) {
-        console.warn(`[MyTreno] ❌ set_train fallito per treno ${trainNum}:`, e);
+        console.warn(`[MyTreno] set_train failed for train ${trainNum}:`, e);
         serviceOk = false;
       }
-      console.log(`[MyTreno] callService completato in ${Date.now()-t0}ms`);
-      const afterService = this._hass.states["sensor.mytreno_selected_train"]?.attributes ?? {};
-      console.log(`[MyTreno] sensore SUBITO dopo callService: train_number=${afterService.train_number}, fermate=${Array.isArray(afterService.fermate) ? afterService.fermate.length : 'N/A'}`);
       attrs = !serviceOk ? null : await (async () => {
-        const startTime = Date.now();
         for (let i = 0; i < 40; i++) {
-          const a = this._hass.states["sensor.mytreno_selected_train"]?.attributes ?? {};
-          const elapsed = Date.now() - startTime;
-          console.log(`[MyTreno] poll #${i} (+${elapsed}ms): train_number=${a.train_number} (${typeof a.train_number}), atteso=${trainNum}, fermate=${Array.isArray(a.fermate) ? a.fermate.length : 'N/A'}`);
+          if (!overlay.isConnected || !this._popupOpen) return null;
+          const a = this._hass.states[extraEntityId]?.attributes ?? {};
           if (String(a.train_number) === String(trainNum) && Array.isArray(a.fermate) && a.fermate.length > 0) {
-            console.log(`[MyTreno] ✅ dati trovati al poll #${i} dopo ${elapsed}ms`);
             return a;
           }
           await new Promise(r => setTimeout(r, 300));
         }
-        console.warn(`[MyTreno] ❌ timeout dopo ${Date.now() - startTime}ms`);
+        console.warn(`[MyTreno] timeout waiting for train ${trainNum}`);
         return null;
       })();
     }
 
+    if (!overlay.isConnected) return;
     const body = popup.querySelector("#treno-detail-body");
     if (!attrs) {
       body.innerHTML = `<p style="color:red;text-align:center;">${window.myTrenoT('not_available', this._getLang())}</p>`;
@@ -809,19 +887,22 @@ class MyTrenoCard extends HTMLElement {
     const fermateHTML = `
       <div class="treno-timeline-scroll">
         <div class="treno-timeline">
-          ${attrs.fermate.map((f, i) => `
+          ${attrs.fermate.map(f => `
             <div class="treno-stop ${f.arrivato ? 'done' : ''} ${attrs.prossima_stazione === f.stazione ? 'next' : ''}">
-              <div class="label">${f.stazione}</div>
+              <div class="label">${escapeHtml(f.stazione)}</div>
               <div class="dot"></div>
               <div class="info">
-                <span>${f.programmata?.substring(11, 16) ?? "--"}</span>
-                ${f.binario ? `<span>bin ${f.binario}</span>` : ""}
+                <span>${escapeHtml(f.programmata?.substring(11, 16) ?? "--")}</span>
+                ${f.binario ? `<span>bin ${escapeHtml(f.binario)}</span>` : ""}
               </div>
             </div>
           `).join("")}
         </div>
       </div>
     `;
+
+    const safeTrainNum = escapeHtml(attrs.train_number);
+    const safeNext = escapeHtml(attrs.prossima_stazione ?? "-");
 
     if (isM3) {
       const delayNum = parseInt(attrs.ritardo, 10);
@@ -833,11 +914,11 @@ class MyTrenoCard extends HTMLElement {
           : delayNum < 0
             ? window.myTrenoT('early', this._getLang(), { delay: delayNum })
             : window.myTrenoT('on_time', this._getLang()))
-        : (attrs.ritardo ?? "-");
+        : escapeHtml(attrs.ritardo ?? "-");
       body.innerHTML = `
         <div class="m3-dialog-header">
           <div class="m3-dialog-icon"><ha-icon icon="mdi:train"></ha-icon></div>
-          <h3>${window.myTrenoT('train', this._getLang())} ${attrs.train_number}</h3>
+          <h3>${window.myTrenoT('train', this._getLang())} ${safeTrainNum}</h3>
         </div>
         <div class="m3-dialog-metrics">
           <div class="m3-metric-tile ${delayTileClass}">
@@ -846,7 +927,7 @@ class MyTrenoCard extends HTMLElement {
           </div>
           <div class="m3-metric-tile">
             <span class="m3-metric-label">${window.myTrenoT('next', this._getLang())}</span>
-            <span class="m3-metric-value" title="${attrs.prossima_stazione ?? "-"}">${attrs.prossima_stazione ?? "-"}</span>
+            <span class="m3-metric-value" title="${safeNext}">${safeNext}</span>
           </div>
         </div>
         <h4>${window.myTrenoT('route', this._getLang())}</h4>
@@ -854,9 +935,9 @@ class MyTrenoCard extends HTMLElement {
       `;
     } else {
       body.innerHTML = `
-        <h3>${window.myTrenoT('train', this._getLang())} ${attrs.train_number}</h3>
-        <p><strong>${window.myTrenoT('delay', this._getLang())}:</strong> ${attrs.ritardo ?? "-"}</p>
-        <p><strong>${window.myTrenoT('next', this._getLang())}:</strong> ${attrs.prossima_stazione ?? "-"}</p>
+        <h3>${window.myTrenoT('train', this._getLang())} ${safeTrainNum}</h3>
+        <p><strong>${window.myTrenoT('delay', this._getLang())}:</strong> ${escapeHtml(attrs.ritardo ?? "-")}</p>
+        <p><strong>${window.myTrenoT('next', this._getLang())}:</strong> ${safeNext}</p>
         <h4>${window.myTrenoT('route', this._getLang())}</h4>
         <div class="fermate">${fermateHTML}</div>
       `;
@@ -873,20 +954,19 @@ class MyTrenoCard extends HTMLElement {
     const prev = this._hass;
     this._hass = hass;
 
-    if (this._popupOpen) {
-      const sel = hass.states["sensor.mytreno_selected_train"]?.attributes;
-      if (sel) console.log(`[MyTreno] set hass (popup aperto): train_number=${sel.train_number}, fermate=${Array.isArray(sel.fermate) ? sel.fermate.length : 'N/A'}`);
+    const sensorChanged = prev?.states?.[this._sensor] !== hass?.states?.[this._sensor];
+    const extraChanged = prev?.states?.[this._extra] !== hass?.states?.[this._extra];
+    const langChanged =
+      prev?.language !== hass?.language ||
+      prev?.selectedLanguage !== hass?.selectedLanguage;
+
+    if (!prev || sensorChanged || extraChanged || langChanged) {
+      if (this._preventRender || this._popupOpen) {
+        if (sensorChanged || langChanged) this._pendingRender = true;
+        return;
+      }
+      this._render();
     }
-
-    if (this._preventRender || this._popupOpen) return;
-
-    const changed =
-      JSON.stringify(prev?.states?.[this._sensor]) !== JSON.stringify(hass?.states?.[this._sensor]) ||
-      JSON.stringify(prev?.states?.[this._extra]) !== JSON.stringify(hass?.states?.[this._extra]);
-
-    if (!changed) return;
-
-    this._render();
   }
 
   static getConfigElement() {
@@ -894,17 +974,12 @@ class MyTrenoCard extends HTMLElement {
   }
 
   setConfig(config) {
-    if (!config.sensor && config.entity) {
-      config.sensor = config.entity;
-    }
-
-    if (!config.sensor) {
+    const sensor = config.sensor || config.entity;
+    if (!sensor) {
       throw new Error(window.myTrenoT('missing_sensor', this._getLang()));
     }
 
-    if (!config.extra_sensor) {
-      config.extra_sensor = "sensor.mytreno_selected_train";
-    }
+    const extraSensor = config.extra_sensor || "sensor.mytreno_selected_train";
 
     // hasStop routes are needle-independent, so keep the cache across filter changes
     const newHasStop = config.hasStop || null;
@@ -912,12 +987,14 @@ class MyTrenoCard extends HTMLElement {
       this._fetchQueue = [];
     }
 
-    this._config = { ...config };
-    this._sensor = config.sensor;
-    this._extra  = config.extra_sensor;
+    this._config = { ...config, sensor, extra_sensor: extraSensor };
+    this._sensor = sensor;
+    this._extra  = extraSensor;
     this._theme  = config.theme || "default";
     if (this._theme === "material3") {
       loadMaterialWeb();
+    } else {
+      loadThemeFont(this._theme);
     }
     this._hasStop = newHasStop;
     this._favoriteTrains = this._parseTrainList(config.favoriteTrains);
@@ -926,6 +1003,10 @@ class MyTrenoCard extends HTMLElement {
     // previous session (per train, per day) are reused without re-fetching.
     if (this._hasStop && Object.keys(this._routeCache).length === 0) {
       this._routeCache = this._loadPersistedRoutes();
+    }
+
+    if (this._hass && !this._popupOpen) {
+      this._render();
     }
   }
   _parseTrainList(value) {
@@ -1021,9 +1102,10 @@ class MyTrenoCard extends HTMLElement {
       try {
         // notifyOnError=false: background lookups must not show HA error toasts
         await this._hass.callService("mytreno", "set_train", { train_number: trainNum }, undefined, false);
+        const extraEntityId = this._extra || "sensor.mytreno_selected_train";
         const fermate = await (async () => {
           for (let i = 0; i < 40; i++) {
-            const a = this._hass.states["sensor.mytreno_selected_train"]?.attributes ?? {};
+            const a = this._hass.states[extraEntityId]?.attributes ?? {};
             if (String(a.train_number) === String(trainNum) && Array.isArray(a.fermate) && a.fermate.length > 0) {
               return a.fermate;
             }
@@ -1067,12 +1149,11 @@ class MyTrenoCard extends HTMLElement {
       this._sensor.replace(/^sensor\.mytreno_/, '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) ||
       "Station";
 
+    const safeStationName = escapeHtml(stationName);
+
     this.innerHTML = `
       <div class="theme-${this._config.theme || 'default'}">
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-          @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-          @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
           .theme-default ha-card {
             background: linear-gradient(140deg, #111728 0%, #1a1d26 100%);
             color: #ffffff;
@@ -1561,6 +1642,35 @@ class MyTrenoCard extends HTMLElement {
             background: var(--m3-error-container);
             color: var(--m3-on-error-container);
           }
+          .theme-material3 .m3-time-pill.m3-time-unknown {
+            background: var(--m3-surface-highest);
+            color: var(--m3-on-surface-variant);
+          }
+          .theme-material3 .m3-list-item.m3-departed {
+            opacity: 0.62;
+          }
+          .theme-material3 .m3-time-pill.m3-time-departed {
+            flex-direction: column;
+            height: auto;
+            min-height: 32px;
+            padding: 3px 8px;
+            gap: 1px;
+            background: var(--m3-surface-highest);
+            color: var(--m3-on-surface-variant);
+          }
+          .theme-material3 .m3-time-pill.m3-time-departed .m3-time-value {
+            font-size: 0.75rem;
+            font-weight: 500;
+            line-height: 1.1;
+            text-decoration: line-through;
+          }
+          .theme-material3 .m3-time-pill.m3-time-departed .m3-departed-label {
+            font-size: 0.625rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            line-height: 1.1;
+          }
           .theme-material3 .m3-platform-cell {
             flex: 0 0 48px;
             display: flex;
@@ -1596,7 +1706,7 @@ class MyTrenoCard extends HTMLElement {
             padding: 0;
           }
 
-          ha-card {
+          my-treno-card ha-card {
             display: flex;
             flex-direction: column;
             background: linear-gradient(140deg, #111728 0%, #1a1d26 100%);
@@ -1761,14 +1871,14 @@ class MyTrenoCard extends HTMLElement {
             box-sizing: border-box;
             /* NIENTE background, border-radius, box-shadow qui! */
           }
-          table {
+          my-treno-card table {
             width: 100%;
             table-layout: fixed;
             border-collapse: separate;
             border-spacing: 0;
             margin-top: 0.5rem;
           }
-          th {
+          my-treno-card th {
               text-align: left;
               padding: 0.75rem 1vh;
               color: rgb(217 216 216 / 85%);
@@ -1779,7 +1889,7 @@ class MyTrenoCard extends HTMLElement {
               background: transparent;
               letter-spacing: 0.01em;
           }
-          td {
+          my-treno-card td {
             text-align: left;
             padding: 0.875rem 1vh;
             font-size: 0.9375rem;
@@ -1797,10 +1907,10 @@ class MyTrenoCard extends HTMLElement {
             display: inline-block;
             white-space: nowrap;
             will-change: transform;
-            padding-right: 20px;
             text-overflow: unset;
           }
           .treno-scrollable-text.treno-overflowing span {
+            padding-right: 20px;
             animation: scroll-text 7s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
           }
           @keyframes scroll-text {
@@ -1929,7 +2039,7 @@ class MyTrenoCard extends HTMLElement {
             <div class="m3-header">
               <div class="m3-header-top">
                 <div class="m3-station-icon"><ha-icon icon="mdi:train-variant"></ha-icon></div>
-                <div class="m3-station-title">${stationName}</div>
+                <div class="m3-station-title">${safeStationName}</div>
               </div>
               <div class="m3-segmented" role="tablist">
                 <button type="button" class="m3-segment ${this.page === 0 ? 'active' : ''}" data-page="0" role="tab" aria-selected="${this.page === 0}">
@@ -1960,14 +2070,14 @@ class MyTrenoCard extends HTMLElement {
             <div class="treno-slider-wrapper">
               <div class="treno-slider">
                 <div class="treno-page">
-                  <div class="treno-title">${window.myTrenoT('departures', this._getLang())} ${stationName}</div>
+                  <div class="treno-title">${window.myTrenoT('departures', this._getLang())} ${safeStationName}</div>
                   <div class="treno-table-scroll">
                     ${this._renderTable(partenze, "destinazione", "destination", true)}
                     ${this._renderTable(partenze, "destinazione", "destination", false)}
                   </div>
                 </div>
                 <div class="treno-page">
-                  <div class="treno-title">${window.myTrenoT('arrivals', this._getLang())} ${stationName}</div>
+                  <div class="treno-title">${window.myTrenoT('arrivals', this._getLang())} ${safeStationName}</div>
                   <div class="treno-table-scroll">
                     ${this._renderTable(arrivi, "provenienza", "provenance", true)}
                     ${this._renderTable(arrivi, "provenienza", "provenance", false)}
@@ -2025,6 +2135,7 @@ class MyTrenoCard extends HTMLElement {
           this.page = Number(btn.dataset.page) || 0;
           updateSegments(this.page);
           this._updateSlide();
+          this._updateScrollingText();
         });
       });
       const slider = this.querySelector(".treno-slider");
@@ -2089,11 +2200,10 @@ class MyTrenoCard extends HTMLElement {
     return sanitized;
   }
 
-  _isDepartingSoon(train) {
-    if (!train) return false;
-    if (train.in_stazione === true || train.lampeggiante === true) return true;
+  _getTrainTimeDiff(train) {
+    if (!train) return null;
     const match = String(train.orario || "").match(/^(\d{1,2}):(\d{2})/);
-    if (!match) return false;
+    if (!match) return null;
     const scheduledMin = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
     const delayMin = Number(train.ritardo) || 0;
     const effectiveMin = (scheduledMin + delayMin + 1440) % 1440;
@@ -2102,10 +2212,25 @@ class MyTrenoCard extends HTMLElement {
     let diff = effectiveMin - nowMin;
     if (diff < -720) diff += 1440;
     if (diff > 720) diff -= 1440;
-    return diff >= -1 && diff <= 5;
+    return diff;
+  }
+
+  _isDeparted(train) {
+    if (!train) return false;
+    if (train.partito === true) return true;
+    const diff = this._getTrainTimeDiff(train);
+    return diff !== null && diff < -1;
+  }
+
+  _isDepartingSoon(train) {
+    if (!train || this._isDeparted(train)) return false;
+    if (train.in_stazione === true || train.lampeggiante === true) return true;
+    const diff = this._getTrainTimeDiff(train);
+    return diff !== null && diff >= -1 && diff <= 5;
   }
 
   _renderMaterial3List(data, field, label) {
+    const isArrival = field === "provenienza";
     return `
       <div class="m3-list-header">
         <span class="m3-col-dest">${window.myTrenoT(label, this._getLang())}</span>
@@ -2115,22 +2240,36 @@ class MyTrenoCard extends HTMLElement {
       <div class="treno-table-scroll">
         <div class="m3-list">
           ${data.map(t => {
-            const name = t[field] || "-";
-            const binarioPrevisto = this._sanitizePlatform(t.binario_previsto);
-            const binarioEffettivo = this._sanitizePlatform(t.binario_effettivo);
+            const name = escapeHtml(t[field] || "-");
+            const binarioPrevisto = escapeHtml(this._sanitizePlatform(t.binario_previsto));
+            const binarioEffettivo = escapeHtml(this._sanitizePlatform(t.binario_effettivo));
             const platformChanged = binarioEffettivo !== binarioPrevisto && binarioEffettivo !== "-";
             const platformDisplay = binarioEffettivo !== "-" ? binarioEffettivo : binarioPrevisto;
-            const delay = Number(t.ritardo) || 0;
-            const isLate = delay > 0;
-            const delayTitle = isLate
-              ? window.myTrenoT('late', this._getLang(), { delay })
-              : delay < 0
-                ? window.myTrenoT('early', this._getLang(), { delay })
-                : window.myTrenoT('on_time', this._getLang());
-            const isDeparting = this._isDepartingSoon(t);
+            const isDeparted = this._isDeparted(t);
+            const isDeparting = !isDeparted && this._isDepartingSoon(t);
+            const hasDelay = t.ritardo !== null && t.ritardo !== undefined && t.ritardo !== "" && !Number.isNaN(Number(t.ritardo));
+            const delay = hasDelay ? Number(t.ritardo) : 0;
+            const safeOrario = escapeHtml(t.orario || '--:--');
+            let timePillHTML;
+            if (isDeparted) {
+              const departedLabel = window.myTrenoT(isArrival ? 'arrived' : 'departed', this._getLang());
+              timePillHTML = `<span class="m3-time-pill m3-time-departed" title="${escapeHtml(departedLabel)} (${safeOrario})"><span class="m3-time-value">${safeOrario}</span><span class="m3-departed-label">${departedLabel}</span></span>`;
+            } else {
+              const timeClass = !hasDelay
+                ? "m3-time-unknown"
+                : (delay > 0 ? "m3-time-late" : "m3-time-ontime");
+              const delayTitle = !hasDelay
+                ? window.myTrenoT('orario', this._getLang())
+                : delay > 0
+                  ? window.myTrenoT('late', this._getLang(), { delay })
+                  : delay < 0
+                    ? window.myTrenoT('early', this._getLang(), { delay })
+                    : window.myTrenoT('on_time', this._getLang());
+              timePillHTML = `<span class="m3-time-pill ${timeClass}" title="${escapeHtml(delayTitle)}">${safeOrario}</span>`;
+            }
             const tEncoded = encodeURIComponent(JSON.stringify(t));
             return `
-              <div class="m3-list-item" data-treno="${tEncoded}">
+              <div class="m3-list-item${isDeparted ? ' m3-departed' : ''}" data-treno="${tEncoded}" data-kind="${isArrival ? 'arrivals' : 'departures'}">
                 <md-ripple></md-ripple>
                 <div class="m3-dest-cell">
                   <ha-icon class="m3-train-icon" icon="mdi:train"></ha-icon>
@@ -2138,7 +2277,7 @@ class MyTrenoCard extends HTMLElement {
                 </div>
                 <div class="m3-time-cell">
                   ${isDeparting ? `<span class="m3-departing-dots" aria-hidden="true"><span></span><span></span></span>` : ''}
-                  <span class="m3-time-pill ${isLate ? 'm3-time-late' : 'm3-time-ontime'}" title="${delayTitle}">${t.orario || '--:--'}</span>
+                  ${timePillHTML}
                 </div>
                 <div class="m3-platform-cell">
                   <div class="treno-platform-badge${platformChanged ? ' treno-platform-changed' : ''}"${platformChanged ? ` title="${binarioPrevisto} → ${binarioEffettivo}"` : ''}>${platformDisplay}</div>
@@ -2164,16 +2303,17 @@ class MyTrenoCard extends HTMLElement {
         </thead>
         <tbody>
           ${data.map(t => {
-            const name = t[field] || "-";
-            const binarioPrevisto = this._sanitizePlatform(t.binario_previsto);
-            const binarioEffettivo = this._sanitizePlatform(t.binario_effettivo);
+            const name = escapeHtml(t[field] || "-");
+            const binarioPrevisto = escapeHtml(this._sanitizePlatform(t.binario_previsto));
+            const binarioEffettivo = escapeHtml(this._sanitizePlatform(t.binario_effettivo));
             const platformChanged = binarioEffettivo !== binarioPrevisto && binarioEffettivo !== "-";
             const tEncoded = encodeURIComponent(JSON.stringify(t));
+            const safeOrario = escapeHtml(t.orario || "--:--");
             if (isDesktop) {
               return `
                 <tr data-treno="${tEncoded}">
                   <td><div class="treno-scrollable-text"><span>${name}</span></div></td>
-                  <td>${t.orario}</td>
+                  <td>${safeOrario}</td>
                   <td><div class="treno-ritardo-box"><span>${this._formatDelay(t.ritardo)}</span></div></td>
                   <td><div class="treno-platform-badge${platformChanged ? ' treno-platform-changed' : ''}">${binarioPrevisto}</div></td>
                   <td>${binarioEffettivo !== "-" ? `<div class="treno-platform-badge">${binarioEffettivo}</div>` : "-"}</td>
@@ -2330,8 +2470,8 @@ customElements.define("my-treno-card-tracking-editor", MyTrenoCardTrackingEditor
 class MyTrenoTrackingCard extends HTMLElement {
   constructor() {
     super();
-    this._lastAttributes = null;
-    this._lastState = null;
+    this._lastEntity = null;
+    this._lastLang = null;
     this._expanded = false;
   }
   _getLang() {
@@ -2344,8 +2484,14 @@ class MyTrenoTrackingCard extends HTMLElement {
     this._theme = config.theme || "default";
     if (this._theme === "material3") {
       loadMaterialWeb();
+    } else {
+      loadThemeFont(this._theme);
     }
-    this._config = config;
+    this._config = { ...config };
+    this._lastEntity = null;
+    if (this._hass) {
+      this._render();
+    }
   }
 
   static getConfigElement() {
@@ -2353,33 +2499,39 @@ class MyTrenoTrackingCard extends HTMLElement {
   }
 
   set hass(hass) {
+    this._hass = hass;
     if (!this._sensor || !hass.states[this._sensor]) return;
     const entity = hass.states[this._sensor];
+    const lang = this._getLang();
+    if (entity === this._lastEntity && lang === this._lastLang) return;
+    this._lastEntity = entity;
+    this._lastLang = lang;
+    this._render();
+  }
+
+  _render() {
+    if (!this._hass || !this._sensor || !this._hass.states[this._sensor]) return;
+    const entity = this._hass.states[this._sensor];
     const newState = entity.state;
-    const newAttrs = entity.attributes;
-    const stateChanged = this._lastState !== newState;
-    const attrsChanged = JSON.stringify(this._lastAttributes) !== JSON.stringify(newAttrs);
-    if (!stateChanged && !attrsChanged) return;
-    this._lastState = newState;
-    this._lastAttributes = newAttrs;
-    this._hass = hass;
-    // Procedi con il render
-    const data = newAttrs;
+    const data = entity.attributes || {};
     const fermate = Array.isArray(data.fermate) ? data.fermate : [];
     const prossima = data.prossima_stazione || "-";
-    const orario = (data.orario_previsto_prossima || "").substring(11, 16) || "--";
-    const titolo = this._config.title || `${window.myTrenoT('train', this._getLang())} ${data.train_number || "??"}`;
-    const ritardo = (typeof newState === 'number' || !isNaN(parseInt(newState))) ? `${newState} ${window.myTrenoT('min', this._getLang())}` : window.myTrenoT('not_available', this._getLang());
+    const safeProssima = escapeHtml(prossima);
+    const orario = escapeHtml((data.orario_previsto_prossima || "").substring(11, 16) || "--");
+    const safeCustomTitle = this._config.title ? escapeHtml(this._config.title) : "";
+    const safeTrainNum = escapeHtml(data.train_number || "??");
+    const titolo = safeCustomTitle || `${window.myTrenoT('train', this._getLang())} ${safeTrainNum}`;
+    const ritardo = (typeof newState === 'number' || !isNaN(parseInt(newState, 10))) ? `${escapeHtml(newState)} ${window.myTrenoT('min', this._getLang())}` : window.myTrenoT('not_available', this._getLang());
     const fermateHTML = `
       <div class="tracking-treno-timeline-scroll">
         <div class="tracking-treno-timeline">
           ${fermate.map(f => `
             <div class="tracking-treno-stop ${f.arrivato ? 'done' : ''} ${prossima === f.stazione ? 'next' : ''}">
-              <div class="label">${f.stazione}</div>
+              <div class="label">${escapeHtml(f.stazione)}</div>
               <div class="dot"></div>
               <div class="info">
-                <span>${(f.programmata || "").substring(11, 16) || "--"}</span>
-                ${f.binario ? `<span>bin ${f.binario}</span>` : ""}
+                <span>${escapeHtml((f.programmata || "").substring(11, 16) || "--")}</span>
+                ${f.binario ? `<span>bin ${escapeHtml(f.binario)}</span>` : ""}
               </div>
             </div>
           `).join("")}
@@ -2395,8 +2547,11 @@ class MyTrenoTrackingCard extends HTMLElement {
     const isM3 = this._theme === "material3";
     if (isM3) {
       const delayNum = parseInt(newState, 10);
-      const isLate = !Number.isNaN(delayNum) && delayNum > 0;
-      const delayTitle = !Number.isNaN(delayNum)
+      const hasDelay = !Number.isNaN(delayNum);
+      const timeClass = !hasDelay
+        ? "m3-time-unknown"
+        : (delayNum > 0 ? "m3-time-late" : "m3-time-ontime");
+      const delayTitle = hasDelay
         ? (delayNum > 0
           ? window.myTrenoT('late', this._getLang(), { delay: delayNum })
           : delayNum < 0
@@ -2408,14 +2563,14 @@ class MyTrenoTrackingCard extends HTMLElement {
           <div class="m3-tracking-header">
             <div class="m3-tracking-icon"><ha-icon icon="mdi:train"></ha-icon></div>
             <div class="m3-tracking-titles">
-              ${this._config.title ? `<span class="treno-custom-title">${this._config.title}</span>` : ""}
-              <h3>${this._config.title ? `${window.myTrenoT('train', this._getLang())} ${data.train_number || "??"}` : titolo}</h3>
+              ${safeCustomTitle ? `<span class="treno-custom-title">${safeCustomTitle}</span>` : ""}
+              <h3>${safeCustomTitle ? `${window.myTrenoT('train', this._getLang())} ${safeTrainNum}` : titolo}</h3>
             </div>
-            <span class="m3-time-pill ${isLate ? 'm3-time-late' : 'm3-time-ontime'}" title="${delayTitle}">${orario}</span>
+            <span class="m3-time-pill ${timeClass}" title="${escapeHtml(delayTitle)}">${orario}</span>
           </div>
           <div class="m3-tracking-next">
             <span class="m3-tracking-next-label">${window.myTrenoT('next', this._getLang())}</span>
-            <span class="m3-tracking-next-value">${prossima}</span>
+            <span class="m3-tracking-next-value">${safeProssima}</span>
           </div>
           <div class="m3-tracking-actions">
             <md-filled-tonal-button class="tracking-percorso-toggle m3-route-btn" trailing-icon>
@@ -2423,21 +2578,21 @@ class MyTrenoTrackingCard extends HTMLElement {
               <ha-icon slot="icon" icon="mdi:chevron-down"></ha-icon>
             </md-filled-tonal-button>
           </div>
-          <div class="tracking-fermate collapsed">${fermateHTML}</div>
+          <div class="tracking-fermate ${this._expanded ? 'expanded' : 'collapsed'}">${fermateHTML}</div>
         </div>
       `;
     } else {
       card.innerHTML = `
         <div class="tracking-treno-popup-content">
-          ${this._config.title ? `<p class="treno-custom-title">${this._config.title}</p>` : ""}
+          ${safeCustomTitle ? `<p class="treno-custom-title">${safeCustomTitle}</p>` : ""}
           <h3>${titolo}</h3>
           <p><strong>${window.myTrenoT('delay', this._getLang())}:</strong> ${ritardo}</p>
-          <p><strong>${window.myTrenoT('next', this._getLang())}:</strong> ${prossima} (${orario})</p>
+          <p><strong>${window.myTrenoT('next', this._getLang())}:</strong> ${safeProssima} (${orario})</p>
           <div class="tracking-percorso-toggle">
             <span>${window.myTrenoT('show_route', this._getLang())}</span>
-            <ha-icon icon="mdi:chevron-down"></ha-icon>
+            <ha-icon icon="${this._expanded ? 'mdi:chevron-up' : 'mdi:chevron-down'}"></ha-icon>
           </div>
-          <div class="tracking-fermate collapsed">${fermateHTML}</div>
+          <div class="tracking-fermate ${this._expanded ? 'expanded' : 'collapsed'}">${fermateHTML}</div>
         </div>
       `;
     }
@@ -2511,125 +2666,19 @@ class MyTrenoTrackingCard extends HTMLElement {
       }
       .tracking-fermate li { line-height:1.4em; }
       .tracking-fermate li.done { opacity:.4; text-decoration:line-through; }
-      .bin { font-size:.8em; opacity:.7; }
+      .tracking-treno-popup .bin { font-size:.8em; opacity:.7; }
       .tracking-treno-popup-content p {
         margin: 0.75rem 0;
         line-height: 1.4;
       	padding-top: 0.5rem;
       	padding-left: 1.5rem;
       }
-      .tracking-treno-timeline-scroll {
-        overflow-x: auto;
-        overflow-y: visible;
+      .tracking-treno-popup .tracking-treno-timeline-scroll {
         padding-left: 20px;
         padding-right: 20px;
         margin-top: -1rem;
-        position: relative;
-        scrollbar-width: thin;
-        scrollbar-color: #999 transparent;
       }
-      .tracking-treno-timeline-scroll::-webkit-scrollbar {
-        height: 6px;
-      }
-      .tracking-treno-timeline-scroll::-webkit-scrollbar-thumb {
-        background-color: #999;
-        border-radius: 10px;
-      }
-      .tracking-treno-timeline {
-        display: flex;
-        position: relative;
-        flex-direction: row;
-        min-height: 200px;
-        width: fit-content;
-        align-items: end;
-        gap: 0;
-        justify-content: center;
-        margin-bottom: 20px;
-      }
-      .tracking-treno-timeline::before {
-        content: '';
-        position: absolute;
-        top: 77.5%;
-        transform: translateY(-50%);
-        left: 0;
-        width: var(--timeline-line-width, 100%);
-        height: 8px;
-        background: #0010ff;
-        z-index: 0;
-      }
-      .tracking-treno-stop {
-        flex: 0 0 auto;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        min-width: 80px;
-        max-width: 80px;
-        min-height: 100px;
-        max-height: 100px;
-      }
-      .tracking-treno-stop .label {
-        transform: rotate(-35deg);
-        transform-origin: bottom left;
-        font-size: 0.7rem;
-        font-weight: 800;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: visible;
-        max-width: 70px;
-        margin-bottom: 1.2rem;
-        height: 2rem;
-        line-height: 8;
-        text-align: left;
-        color: var(--mytreno-text-color, #ffffff);
-        margin-left: 50px;
-      }
-      .tracking-treno-stop .dot {
-        width: 16px;
-        height: 16px;
-        background: #ccc;
-        border-radius: 50%;
-        position: relative;
-        z-index: 1;
-        border: 2px solid #fff;
-        transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
-      }
-      .tracking-treno-stop:hover .dot {
-        transform: scale(1.2);
-        box-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
-      }
-      .tracking-treno-stop.done .dot {
-        background: #4caf50;
-        opacity: 0.4;
-      }
-      .tracking-treno-stop.next .dot {
-        background: #ff9800;
-        box-shadow: 0 0 6px #ff9800, 0 0 12px rgba(255, 152, 0, 0.4);
-        animation: pulse-dot 1.5s infinite;
-      }
-      @keyframes pulse-dot {
-        0% { box-shadow: 0 0 0 0 rgba(255,152,0,0.6); }
-        70% { box-shadow: 0 0 0 10px rgba(255,152,0,0); }
-        100% { box-shadow: 0 0 0 0 rgba(255,152,0,0); }
-      }
-      .tracking-treno-stop .info {
-        font-size: 0.8rem;
-        margin-top: 0.6rem;
-        color: var(--mytreno-info-color, #ffffff);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 2px;
-        text-align: center;
-        line-height: 1.2;
-      }
-      .tracking-treno-stop .info span:first-child {
-        font-weight: 600;
-      }
-      .tracking-treno-stop .info span:last-child {
-        font-style: italic;
-        font-size: 0.75rem;
-        opacity: 0.8;
-      }
+      ${getSharedTimelineStyles('.tracking-treno-popup', 'tracking-treno-')}
       .tracking-treno-popup.theme-default {
         --mytreno-title-color: #edbd00;
       }
@@ -2831,6 +2880,10 @@ class MyTrenoTrackingCard extends HTMLElement {
       .tracking-treno-popup.theme-material3 .m3-time-pill.m3-time-late {
         background: var(--m3-error-container);
         color: var(--m3-on-error-container);
+      }
+      .tracking-treno-popup.theme-material3 .m3-time-pill.m3-time-unknown {
+        background: var(--m3-surface-container);
+        color: var(--m3-on-surface-variant);
       }
       .tracking-treno-popup.theme-material3 .m3-tracking-next {
         display: flex;
